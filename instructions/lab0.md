@@ -135,7 +135,7 @@ stack will be at higher addresses the earlier they were pushed on.
 
 Answer the following:
 
-1. What address is the start (top) of the stack?
+1. What address is the start (first pushed element) of the stack?
 
 2. What items are on the stack at this point (pc = 0x10000c)?
 
