@@ -111,6 +111,7 @@ mode before submitting it to the autograder!
 - You may only have one submission queued at a time (if you have a submission
   queued, but not yet graded, the autograder will reject additional submission
   requests until your submission is graded).
+- You may not modify the transition interface between the bootblock and the autograder.
 
 
 ## Autograder Use
