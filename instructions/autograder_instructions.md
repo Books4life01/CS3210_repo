@@ -180,5 +180,32 @@ Here is a quick breakdown of the fields in this confirmation message:
   submission?
 
 
+### Group Creation
+
+The autograder allows creation of groups.  By default every student is in their own
+group, with their own repositories.  Starting from lab2, if students wish to partner
+with another student, the autograder will support this behavior.  To create a group
+and get a github repository for your group please do the following:
+
+1  Decide on a `group_name`.  This name must be alpha-numeric (only using characters `[a-zA-Z0-9]`).
+2  Have one partner generate an autograder key (NOTE: this key only lasts for 5 minutes)
+   - To do so, log into the autograder and click the "Get Group Key" button.
+   - The displayed screen will have a unique key
+3  Have the other partner create the group:
+   - Select the "Create Group" button
+   - Enter your group name in the "Group Name" box
+   - Enter your *partner's* key in the Partner Key box
+   - Press "Create Group"
+
+Once this process is completed the autograder will begin to make your group.  It will
+create a new github repository for you and your partner called `cs3210-f20/<groupname>-xv6-public.git`.
+Both you and your partner will have write accesses to this repository, and all future
+autograder submissions for either of you will come from this repository.
+
+**NOTES**:  Once you join a group, you cannot leave or form a new group without informing
+the instructional staff (we'll help you with that process).  Groups are intended to last
+the semester, however we understand that sometimes its best not to stay in your group.  To
+discourage group hopping we don't enable creating switching groups (once you've entered your first group)
+by default, but we will allow you to switch groups if needed.
 
 [autograder]:https://cs3210-autograder.cc.gatech.edu/index.html
