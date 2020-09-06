@@ -187,15 +187,15 @@ group, with their own repositories.  Starting from lab2, if students wish to par
 with another student, the autograder will support this behavior.  To create a group
 and get a github repository for your group please do the following:
 
-1  Decide on a `group_name`.  This name must be alpha-numeric (only using characters `[a-zA-Z0-9]`).
-2  Have one partner generate an autograder key (NOTE: this key only lasts for 5 minutes)
-   - To do so, log into the autograder and click the "Get Group Key" button.
-   - The displayed screen will have a unique key
-3  Have the other partner create the group:
-   - Select the "Create Group" button
-   - Enter your group name in the "Group Name" box
-   - Enter your *partner's* key in the Partner Key box
-   - Press "Create Group"
+1.  Decide on a `group_name`.  This name must be alpha-numeric (only using characters `[a-zA-Z0-9]`).
+2.  Have one partner generate an autograder key (NOTE: this key only lasts for 5 minutes)
+    - To do so, log into the autograder and click the "Get Group Key" button.
+    - The displayed screen will have a unique key
+3.  Have the other partner create the group:
+    - Select the "Create Group" button
+    - Enter your group name in the "Group Name" box
+    - Enter your *partner's* key in the Partner Key box
+    - Press "Create Group"
 
 Once this process is completed the autograder will begin to make your group.  It will
 create a new github repository for you and your partner called `cs3210-f20/<groupname>-xv6-public.git`.
