@@ -198,7 +198,7 @@ and get a github repository for your group please do the following:
     - Press "Create Group"
 
 Once this process is completed the autograder will begin to make your group.  It will
-create a new github repository for you and your partner called `cs3210-f20/<groupname>-xv6-public.git`.
+create a new github repository for you and your partner called `cs3210-spring2021/<groupname>-xv6-public.git`.
 Both you and your partner will have write accesses to this repository, and all future
 autograder submissions for either of you will come from this repository.
 
