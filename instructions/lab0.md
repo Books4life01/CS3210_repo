@@ -19,7 +19,7 @@ Start by checking out your xv6 repository.  The following line will clone your
 code into cs3210\_lab:
 
 ```bash
-git clone git@github.gatech.edu:cs3210-spring2021/<youruniquename>-xv6-public.git cs3210_lab
+git clone git@github.gatech.edu/cs3210-spring2021/<youruniquename>-xv6-public.git cs3210_lab
 ```
 
 Now, build your repository.  We recommend building within a separate build
