@@ -5,28 +5,40 @@ gained with xv6, particularly the boot process (which you'll be modifying in lab
 1), as well as to gain some familiarity with the tools we'll be using as a part
 of this course.
 
-This is the only lab where you will submit answers to questions, in prose.  All
-other labs will be autograded, and based on code.
+This is the only lab where you will submit answers to questions through Canvas.
+All other labs will be autograded.
 
-For this lab, you will submit your answers to the canvas Lab0 assignment as a
-txt, md, or pdf file by the due date and time given in the schedule.
+## Requirements
 
+In order to interface w/ our scripts, you must be able to run Bash and Docker.
+Our recommendation for Windows users is to use WSL with Docker. Further help
+can be provided through Piazza or Office Hours for getting this setup.
+
+- Docker
+- Bash
+- Git
 
 ## Downloading, Compiling, and Running xv6
 
-
-Start by checking out your xv6 repository.  The following line will clone your
-code into cs3210\_lab:
+Start by checking out the xv6 repository on your local machine.
 
 ```bash
-git clone git@github.gatech.edu/cs3210-spring2021/<youruniquename>-xv6-public.git cs3210_lab
+git clone git@github.gatech.edu/cs3210-fall2021/xv6.git 
+cd xv6
 ```
 
-Now, build your repository.  We recommend building within a separate build
-directory:
+Next, launch the docker instance for the class using the provided script.
 
 ```bash
-cd cs3210_lab
+./scripts/docker.sh --pull # download the image from DockerHub
+./scripts/docker.sh # run container and mount the pwd as /xv6
+```
+
+Now that you're inside the docker instance, build your repository. We recommend
+building within a separate build directory:
+
+```bash
+cd /xv6
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Debug
@@ -35,18 +47,6 @@ make
 
 This will build and install the kernel.  
 
-**NOTE:** Depending on the state of your VM installation, you may have to install
-some programs, such as gcc, make, cmake, to actually build the kernel.  Install
-any missing programs as follows
-```bash
-sudo apt install <programs>
-```
-
-If you have a new installation, we recommend installing at least:
-```bash
-sudo apt install gcc build-essential cmake qemu libvirt-dev
-```
-
 Once make complete successfully you can try to boot the kernel by
 running our xv6-qemu script (from within your build directory):
 
@@ -54,7 +54,7 @@ running our xv6-qemu script (from within your build directory):
 ./xv6-qemu
 ```
 
-This should launch xv6 and take you to a prompt.  You can view avaialble files
+This should launch xv6 and take you to a prompt.  You can view available files
 with `ls`.  You can close qemu by pressing CTRL-a followed by x.
 
 ## Observing behaviors with gdb
@@ -67,18 +67,19 @@ launcher script, please launch the xv6 launcher with gdb enabled:
 ```
 
 This should pause qemu from launching, and wait for a gdb session to attach.
-Now, in a separate terminal, launch gdb from your build directory:
+Now, we can connect to our Docker container in a separate terminal and launch
+gdb from the build directory:
+
 ```bash
-cd <your build directory>
+./scripts/docker.sh --attach
+cd /xv6/build
 gdb
 ```
 
-**NOTE:** gdb may give you an error.  Please follow the instructions they give
-you to enable gdb to use our `.gdbinit` script to connect to qemu.
-
 Once this is complete, it should take you to a gdb console, with the initial
 BIOS `ljmp` instruction from the x86 machine's reset vector:
-```
+
+```x86
 ljmp   $0xf000,$0xe05b
 ```
 
@@ -88,20 +89,20 @@ address.  Look up real-mode addressing, what is the linear address to which it
 is jumping? (this question is ungraded)
 
 Find the address of \_start, the entry point of the kernel:
-```
+
+```bash
 $ nm kernel/kernel | grep _start
 8010b50c D _binary_entryother_start
 8010b4e0 D _binary_initcode_start
 0010000c T _start
 ```
 
-
 The kernel address is at 0010000c.
 
 Open gdb in the same directory, set a breakpoint and run to \_start as in the
 following:
 
-```
+```bash
 $ gdb
 ...
 The target architecture is assumed to be i8086
@@ -131,9 +132,9 @@ Look at the registers and stack:
 The stack grows from higher addresses to lower in x86, so items pushed on the
 stack will be at higher addresses the earlier they were pushed on.
 
-## Graded Questions:
+## Graded Questions
 
-Answer the following:
+Answer the following on Canvas:
 
 1. What address is the start (first pushed element) of the stack?
 
@@ -161,7 +162,7 @@ where eip is set to 0x10000c. What happens to the stack as a result of that
 call? Look at the bootmain C code and compare it to the bootblock.asm assembly
 code.
 
-## Extra (not graded):
+## Extra (not graded)
 
 For thought: (let us know if you play with it!): Most modern OSs boot using a
 firmware standard called UEFI instead of the older standard BIOS. Bootloaders
@@ -174,4 +175,3 @@ firmware load such as OVMF, and QEMU, show using gdb that you can reach the
 kernel entry point. What did you have to change to get this working? (You may
 use the 64-bit architecture qemu for this to avoid having to compile OVMF
 32-bit.)
-
