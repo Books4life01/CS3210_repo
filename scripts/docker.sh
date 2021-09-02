@@ -46,5 +46,5 @@ elif [[ $ATTACH == true ]]; then
     docker exec -it xv6 bash 
 else
     echo "Starting xv6 container"
-    docker run --rm -it --name="xv6" -v ${ROOT_DIR}/:/xv6 -w="/xv6" jackwolfard/cs3210:latest
+    docker run --rm -it --name="xv6" -v "${ROOT_DIR}/":/xv6 -w="/xv6" jackwolfard/cs3210:latest
 fi
