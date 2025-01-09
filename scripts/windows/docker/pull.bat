@@ -1,1 +1,1 @@
-docker pull jackwolfard/cs3210:latest
+docker pull cs3210/xv6:latest
