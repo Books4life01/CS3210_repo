@@ -21,5 +21,5 @@ set(user_SOURCES
 
   # Common utility programs
   src/ls.c
+  src/echo.c
   )
-
