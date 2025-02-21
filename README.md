@@ -638,26 +638,31 @@ lab. Make good use of lectures, Piazza, and office hours: we're there to help.
 ## Autograder
 
 As usual, you will submit this lab to the autograder. The testcases are shown below:
-
 - Scheduling Tests
   - Test 1-10
 - Clone Functionality
-  - Tests 10-15
-- Clone error / security
-  - Tests 16-21
-- Thread library general testing
-  - Tests 22-26
-- Thread library error / security testing
-  - Tests 27-31
+  - Tests 11-15
+- Clone Limits
+  - Tests 16-18
+- Clone Error/Security
+  - Test 19-21
+- Thread Library General Testing
+  - Tests 22-25
+- Thread Library I/O Blocking
+  - Test 26
+- Thread Library Error/Security
+  - Test 27-30
+- Thread Address Space
+  - Test 31
 - Spinlock
   - Test 32
-- Park, setpark, unpark
+- Park, Setpark, Unpark
   - Tests 33-35
 - Mutex
   - Test 36
 - Waitpid
   - Test 37
-- Condvar
+- Conditional Variables
   - Tests 38-41
 
 **IMPORTANT**: Since this lab has a good deal of concurrency involved, you may
