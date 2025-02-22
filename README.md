@@ -9,9 +9,10 @@ own scheduling algorithm and benchmark its performance.
 
 This is a *large* lab, larger than the labs you've done so far, so be warned! 
 
-To help you stay organized, we have split it into two main checkpoints:
-- Lab 3 - Checkpoint (Part 1 + Part 2)
-- Lab 3 (Full lab)
+To help you stay organized, we introduced a bonus "checkpoint" opportunity. 
+Students submissions will automatically be evaluated on Parts 1 and 2 (tests 1-21).
+The percentage of tests in that range correctly passed by the checkpoint deadline
+will count towards a checkpoint bonus!
 
 To give a sense of how long it may take to complete each part, we've marked
 them with the following labels:
