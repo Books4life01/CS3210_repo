@@ -635,9 +635,12 @@ Lastly, we encourage you to have fun while implementing it. It may seem daunting
 at first, but know full-well that you have all that you need to do well in this
 lab. Make good use of lectures, Piazza, and office hours: we're there to help.
 
-## Autograder
+## Grading
+
+#### Autograder
 
 As usual, you will submit this lab to the autograder. The testcases are shown below:
+
 - Scheduling Tests
   - Test 1-10
 - Clone Functionality
@@ -670,17 +673,20 @@ be able to pass some tests without correctly implementing some of these
 primitives. We will be looking over your submission when hand-grading, so
 please thoroughly test your implementation.
 
-On Gradescope you will find two assignments:
-- Lab 3 - Checkpoint (Tests 1-21)
-- Lab 3 (All tests)
-
-Your final Lab 3 score is equal to the score you get for the Lab 3 assignment (autograded + hand-graded). 
-This means that you can continue working on the checkpoint tests after the due date. If you are able to pass 
-all the autograder tests in the checkpoint by the due date, ~~five~~ **ten bonus points** will be added to your final Lab 3 score.
-
-## Hand Grading
-Similar to lab 2, there is a hand graded section of the lab. We will check for
+#### Hand Grading
+Similar to previous labs, there is a hand graded section of the lab. We will check for
 the following:
 - Mutal exclusion in newly created kernel data structures
 - Attempts to subvert the autograder
 - Violations of the student honor code
+
+#### Point Breakdown
+- 100 pts - Autograder
+- 25 pts - Hand Grading
+- 6 pts - Checkpoint 
+- 6 pts - Extra Credit Scheduler
+
+Total lab grade is 125pts, so the maximum attainable score is 137pts/125pts.
+The checkpoint will only consist of Parts 1 and 2, which are testcases 1-21, and
+will be percentage based, meaning that you will receive points relative to the percentage 
+on the autograder for only those test. All submissions are to be made in the Lab3 autograder.
