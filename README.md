@@ -1,18 +1,21 @@
 # Lab 3 -- Scheduling and Threading
 
 The purpose of this lab is to introduce you to the concepts of
-scheduling and concurrency.  This lab consists primarily of two parts:  First,
-you will be extending xv6's scheduler to support multiple new schedulers.
+scheduling and concurrency. This lab consists primarily of three parts:  
+First, you will be extending xv6's scheduler to support multiple new schedulers.
 Second, you will be constructing a kernel-space threading library. 
+Third, you will be implementing a number of synchronization primitives.
 This lab also includes an extra-credit opportunity that allows you to design your 
-own scheduling algorithm and benchmark its performance.
+own scheduling algorithm and benchmark its performance relative to 
+the required scheduling baselines!
 
 This is a *large* lab, larger than the labs you've done so far, so be warned! 
 
 To help you stay organized, we introduced a bonus "checkpoint" opportunity. 
-Students submissions will automatically be evaluated on Parts 1 and 2 (tests 1-21).
+Students' submissions will automatically be evaluated on Parts 1 and 2 (tests 1-21).
 The percentage of tests in that range correctly passed by the checkpoint deadline
-will count towards a checkpoint bonus!
+will count towards a checkpoint bonus! Please note that the custom scheduler
+will NOT be required/counted for the checkpoint bonus.
 
 To give a sense of how long it may take to complete each part, we've marked
 them with the following labels:
