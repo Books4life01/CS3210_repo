@@ -159,7 +159,7 @@ rules:
 
 
 ##### Nit:
-Do not temper with the APIC `TIMER` or `PERIODIC` as you will be modifying the 
+Do not tamper with the APIC `TIMER` or `PERIODIC` as you will be modifying the 
 external timer which interrupts the CPU for scheduling decisions.
 
 If another process becomes a better candidate than the currently running process
