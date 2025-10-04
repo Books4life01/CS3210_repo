@@ -23,7 +23,7 @@ them with the following labels:
 - moderate: 1-5hrs
 - hard: 5-9hrs
 
-Note that there are just estimates. Your completion time will vary based on
+Note that these are just estimates. Your completion time will vary based on
 your grasp of the course material and proficiency with navigating xv6. We
 highly recommend that you read chapters 3 to 5 of the xv6 manual.
 
@@ -156,6 +156,7 @@ rules:
 - When a new process becomes runnable, if it should run before the current
   process, your scheduler should immediately preempt the currently running process and
   schedule it (with one exception, in "Nit").
+- FIFO and RR is based on when the process is created NOT when it arrives in queue.
 
 
 ##### Nit:
@@ -170,7 +171,9 @@ action on CPU ` c1` running process `p1`causes a process to become
 RUNNABLE that is not higher priority than `p1`, but is higher priority than
 process `p2` currently running on a different CPU `c2`, then `c2` need not
 preempt `p2` until the first of: an interrupt to `c2`, `p2`'s completion, or an
-event which causes `p2` to suspend.
+event which causes `p2` to suspend. 
+
+*TLDR: CPUs shouldn't affect other CPUs*
 
 #### Default Behavior
 
@@ -263,6 +266,8 @@ of you scheduling algorithm, and analysing the performance results that were gat
 and table that will be useful in your writeup. Please name the file `report.pdf` and place it in the project root
 (double-check your `submission.zip` to ensure it is included when you submit).
 
+*If you don't have this report, we won't grade any extra credit attempts.*
+
 ## Part 2 (hard) -- Threading
 
 What is a thread, and how do we build it?  Like a process, a thread represents
@@ -334,8 +339,7 @@ from doing this (think back to lab1's backtrace)?  How must clone adjust?
 
 xv6 has a `wait` system call that waits on any child process. This is useful
 when we don't know which children we want to wait on, but can result in
-non-deterministic results. As you will see below, we sometimes need to be able
-to wait on specific processes.
+non-deterministic results. As you will see below, we sometimes need to be able to wait on specific processes.
 
 You will add support for this by implementing the `waitpid()` system call:
 ```
@@ -537,8 +541,7 @@ Arguments:
 Return value:
   - -1 on failure, 0 on success
 Description:
-Acquires a mutex. If the mutex is already locked, the calling thread will
-sleep until the mutex is available.
+Acquires a mutex. If the mutex is already locked, the calling thread will sleep until the mutex is available.
 
 
 Definition:
@@ -550,8 +553,7 @@ Arguments:
 Return value:
   - -1 on failure, 0 on success
 Description:
-Releases a mutex. If there are any threads waiting on the mutex, one of them
-will be woken up
+Releases a mutex. If there are any threads waiting on the mutex, one of them will be woken up
 
 Definition:
 int mutex_release(struct mutex *m);
@@ -597,9 +599,7 @@ Arguments:
 Return value:
   - -1 on failure, 0 on success
 Description:
-Atomically blocks the current thread waiting on the condition variable cond,
-and releases the mutex m. The waiting thread unblocks only after another thread
-calls cond_signal. After being woken up the current thread reacquires the mutex
+Atomically blocks the current thread waiting on the condition variable cond,and releases the mutex m. The waiting thread unblocks only after another thread calls cond_signal. After being woken up the current thread reacquires the mutex
 m.
 
 
