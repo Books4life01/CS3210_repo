@@ -20,7 +20,7 @@ The xv6 repository we're using for this course is available on Georgia Tech's
 GitHub:
 
 ```bash
-git clone git@github.gatech.edu:cs3210-fall2025/xv6.git
+git clone git@github.gatech.edu:cs3210-spring2026/xv6.git
 ```
 
 For this lab, we will be using the lab1 branch within git. You may switch to it
