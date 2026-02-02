@@ -544,6 +544,6 @@ of the following projects (no credit given, just fun experiments):
 [bios]: https://github.com/qemu/qemu/tree/master/pc-bios
 [grub]: https://www.gnu.org/software/grub/
 [e820]: https://wiki.osdev.org/Detecting_Memory_(x86)#BIOS_Function:_INT_0x15.2C_EAX_.3D_0xE820
-[private-fork]: https://github.gatech.edu/pages/cs3210-fall2025/course//wiki/private-fork/
-[autograder-manual]: https://github.gatech.edu/pages/cs3210-fall2025/course/wiki/autograder/
+[private-fork]: https://github.gatech.edu/pages/cs3210-spring2026/course//wiki/private-fork/
+[autograder-manual]: https://github.gatech.edu/pages/cs3210-spring2026/course/wiki/autograder/
 [gradescope]: https://www.gradescope.com/courses/699141
