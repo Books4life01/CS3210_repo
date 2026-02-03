@@ -33,26 +33,34 @@ if [ -n "${TMUX:-}" ]; then
   CURRENT_SESSION=$(tmux display-message -p '#{session_name}')
   CURRENT_WINDOW=$(tmux display-message -p '#{window_index}')
   
-  if [ "$CURRENT_SESSION" = "$SESSION" ] && [ "$CURRENT_WINDOW" = "1" ]; then
-    echo "currently in window 1, resetting panes instead of killing window"
+  if [ "$CURRENT_SESSION" = "$SESSION" ] && [ "$CURRENT_WINDOW" = "0" ]; then
+    echo "currently in window 0, resetting panes instead of killing window"
     # kill all panes except current one
-    tmux kill-pane -a -t "$SESSION:1"
-    WINDOW_ID="$SESSION:1"
+    tmux kill-pane -a -t "$SESSION:0"
+    WINDOW_ID="$SESSION:0"
   else
-    # kill window 1 if it exists and we're not in it
-    if tmux list-windows -t "$SESSION" -F "#{window_index}" | grep -qx 1; then
-      tmux kill-window -t "$SESSION:1"
+    WINDOW_COUNT=$(tmux list-windows -t "$SESSION" | wc -l)
+    if [ "$WINDOW_COUNT" -eq 1 ]; then
+      tmux new-window -t "$SESSION"
     fi
-    # create a fresh window at ID 1 named 'gdb'
-    WINDOW_ID=$(tmux new-window -t "$SESSION:1" -n gdb -P -F '#{window_id}')
+
+    # multiple windows exist, safe to kill first window if it exists
+    tmux kill-window -t "$SESSION"
+
+    # create a fresh window at ID 0 named 'gdb'
+    WINDOW_ID=$(tmux new-window -t "$SESSION:0" -n gdb -P -F '#{window_id}')
   fi
 else
-  # not in tmux, safe to kill window 1
-  if tmux list-windows -t "$SESSION" -F "#{window_index}" | grep -qx 1; then
-    tmux kill-window -t "$SESSION:1"
-  fi
-  # create a fresh window at ID 1 named 'gdb'
-  WINDOW_ID=$(tmux new-window -t "$SESSION:1" -n gdb -P -F '#{window_id}')
+    WINDOW_COUNT=$(tmux list-windows -t "$SESSION" | wc -l)
+    if [ "$WINDOW_COUNT" -eq 1 ]; then
+      tmux new-window -t "$SESSION"
+    fi
+
+    # multiple windows exist, safe to kill first window if it exists
+    tmux kill-window -t "$SESSION"
+
+    # create a fresh window at ID 0 named 'gdb'
+    WINDOW_ID=$(tmux new-window -t "$SESSION:0" -n gdb -P -F '#{window_id}')
 fi
 
 # get authoritative left pane
