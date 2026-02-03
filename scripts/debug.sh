@@ -27,40 +27,21 @@ else
   tmux set-option -t "$SESSION" -g mouse on
 fi
 
-# check if we're currently in window 1 of this session
 CURRENT_WINDOW=""
 if [ -n "${TMUX:-}" ]; then
   CURRENT_SESSION=$(tmux display-message -p '#{session_name}')
   CURRENT_WINDOW=$(tmux display-message -p '#{window_index}')
   
-  if [ "$CURRENT_SESSION" = "$SESSION" ] && [ "$CURRENT_WINDOW" = "0" ]; then
-    echo "currently in window 0, resetting panes instead of killing window"
-    # kill all panes except current one
-    tmux kill-pane -a -t "$SESSION:0"
-    WINDOW_ID="$SESSION:0"
+  if [ "$CURRENT_SESSION" = "$SESSION" ]; then
+    tmux kill-pane -a -t "$SESSION"
+    WINDOW_ID="$SESSION:$CURRENT_WINDOW"
   else
-    WINDOW_COUNT=$(tmux list-windows -t "$SESSION" | wc -l)
-    if [ "$WINDOW_COUNT" -eq 1 ]; then
-      tmux new-window -t "$SESSION"
-    fi
-
-    # multiple windows exist, safe to kill first window if it exists
-    tmux kill-window -t "$SESSION"
-
     # create a fresh window at ID 0 named 'gdb'
-    WINDOW_ID=$(tmux new-window -t "$SESSION:0" -n gdb -P -F '#{window_id}')
+    WINDOW_ID=$(tmux new-window -t "$SESSION" -n gdb -P -F '#{window_id}')
   fi
 else
-    WINDOW_COUNT=$(tmux list-windows -t "$SESSION" | wc -l)
-    if [ "$WINDOW_COUNT" -eq 1 ]; then
-      tmux new-window -t "$SESSION"
-    fi
-
-    # multiple windows exist, safe to kill first window if it exists
-    tmux kill-window -t "$SESSION"
-
     # create a fresh window at ID 0 named 'gdb'
-    WINDOW_ID=$(tmux new-window -t "$SESSION:0" -n gdb -P -F '#{window_id}')
+    WINDOW_ID=$(tmux new-window -t "$SESSION" -n gdb -P -F '#{window_id}')
 fi
 
 # get authoritative left pane
