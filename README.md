@@ -1,237 +1,414 @@
-# Lab0: Booting xv6 and Writing User-Space Programs
+# Lab 4: Networking
 
-The goal of this lab is to get your environment setup, and gain some familiarity
-with xv6, particularly the boot process (which you'll be modifying in lab
-1), the tools we'll be using as a part of this course as well as how to write
-user-space processes. 
+In this lab, you'll implement a device driver for a network interface card (NIC)
+and a simple Ethernet protocol to allow multiple instances of xv6 to
+communicate.
 
-## Requirements
+You've learned that operating systems manage hardware devices and provide
+abstractions for the user to build upon. We'll explore how an operating system
+discovers, initializes, and communicates with devices on a computer. One useful
+protocol is Peripheral Component Interconnect, or PCI, which we'll use to
+initialize and use a NIC: the Intel e1000.
 
-In order to interface w/ our scripts, you must be able to run Bash and Docker.
-Our recommendation for Windows users is to use WSL with Docker. Further help
-can be provided through Piazza or Office Hours for getting this setup.
+**Important**: if you submit without completing all the parts, make sure to
+implement all syscall stubs mentioned in this lab to prevent `make failure`. We
+cannot give submissions back due to failed compilations.
 
-- Docker
-- Bash
-- Git
+## Resources
+In this lab, you will likely be referring to these resources:
+* The xv6 manual
+* The [Intel Manual](https://d2pgu9s4sfmw1s.cloudfront.net/UAM/Prod/Done/a062E00001d9gh8QAA/ff7854ec-ee97-4f95-8879-eae3000993f3?Expires=1648211526&Key-Pair-Id=APKAJKRNIMMSNYXST6UA&Signature=Q5vLcCzTLkgRyPJNK96-1Uc1yQMN7W~PWfVvSTHWVkcioECb9ekgoUgT0nd-sosC3LwSdH75fTG9K7zd5dtDdmPEG5uma20mCHXSaEAtpXfQHMhZls1GKv7ZbSfU9OQLpvWz9hqsAjSI56mrIuJWRjuuUjKlWBHtR8f3weFJEyZRm~xGExnE-HPZCDOl9H3~zuMDZO0U4wDGLMyHUVKzevSoPduV3Z-JUCR5Yuo37KLsBUlwYcu7cIQT9xfGQH9UEoLs~948noenzb5Tz4TyM04YncLqj-WrQXQBeze46JPFZZLXRYu6IrhSvLV~7NCxhmPRF1zDKzlTSSoY30~eEw__)
+* The [e1000 Manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf)
+* The [OSDev wiki](https://wiki.osdev.org/PCI) on PCI
 
-## Downloading, Compiling, and Running xv6
+## Part 1: Inline x86 Assembly
 
-Start by checking out the xv6 repository on your local machine.
+Recall CS 2110, CS 2200, or any equivalent class you have taken. To communicate
+with devices, we could use I/O ports with `IN` and `OUT` instructions or use
+reserved memory addresses.
 
-```bash
-git clone https://github.gatech.edu/cs3210-fall2025/xv6.git
-cd xv6
-git checkout lab0
-```
+### Requirements
+Write wrapper functions for the `inl` and `outl` instructions in
+`include/asm/x86.h` to facilitate port-mapped I/O. These functions should write
+to I/O ports with 32-bit widths.
 
-Next, launch the docker instance for the class using the provided script.
+Hint: xv6 communicates with a UART device using byte-width `inb` and `outb`
+instructions to write characters to a screen.
 
-```bash
-./scripts/docker.sh --pull # download the image from DockerHub
-./scripts/docker.sh # run container and mount the pwd as /xv6
-```
+## Part 2: PCI Device Discovery
 
-Now that you're inside the docker instance, build your repository. We recommend
-building within a separate build directory:
+Now that you can read and write to port-mapped devices, we can _discover_
+devices connected to xv6.
 
-```bash
-cd /xv6
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug
-make
-```
+In a Linux shell, try executing the `lspci` command. The output will describe
+all the devices connected via a PCI port to your processor. In this part, you'll
+implement a simpler version of `lspci` for xv6.
 
-This will build and install the kernel.  
+### Requirements
+Implement the following system call:
 
-Once make complete successfully you can try to boot the kernel by
-running our xv6-qemu script (from within your build directory):
+```c
+int lspci(void);
 
-```bash
-./xv6-qemu
-```
+Return Value:
+0 in all cases
 
-This should launch xv6 and take you to a prompt.  You can view available files
-with `ls`.  You can close qemu by pressing CTRL-a followed by x.
-
-## Building User-Space Programs in xv6
-New user-space programs can be created by adding C source files in the `user` directory.
-To ensure that the CMake build system is aware of the new file, and compiles it properly,
-we need to modify the `user/Sources.cmake` file.
-
-For the scope of this lab, the three mandatory questions are already added, and the optional file entries are commented.
-We just need to specify the relative path of the user-level C source file that we want to include.
-
-We've provided a template user-space program source file in the src directory, and these typically follow the traditional C program structure with the exception of slightly different header files.
-
-After creating your program, we need to rebuild the kernel from the build directory with make. The build system will automatically compile your new program along with the existing user programs (NOTE: Ensure the program is in the `Sources.cmake` file). Once the build completes, you can run `xv6-qemu` and execute your program from the shell prompt to test for correctness.
-
-For more details on the library functions and system calls available to a user-level program, refer to the `include/user.h` file.
-
-# User-Space Programs
-
-This section will refresh you C programming skills and make you familiar some of the
-commonly used system calls in low-level C programming. Each program can be implemented in around 10 lines of code so they should not take very long. Most of your time may be spent learning about the different syscalls in xv6.
-
-**IMPORTANT:** We will be explicitly requiring error handling in your code, as well as freeing all resources (e.g., closing files) when handgrading. For any system calls/library functions that you utilize in your code, we are making it a requirement that you must gracefully handle any errors in the event these functions return any errors.
-
-**Read chapter 0 of the xv6 manual. It provides an excellent overview of the xv6 operating system and describes the fundamental system calls that will be used throughout the lab.**
-
-*Note: Be cautious when using Linux maunal page (man page), the xv6 syscalls are based of their Linux conterparts, but do not have all the features implemented, so use the man pages carefully.* 
-
-## Part 1. Hello World (easy) [1 point]
-
-The obvious starting point for a user-space program is a "Hello World" application, 
-however we have put a slight twist to the common structure. 
-
-* Write a user-space program `user/src/lab0/helloworld.c` that will write the "Hello World!" string into a temporary file using the write system call and then close the file. 
-* Afterwards, the program should read the same string out of the file into a buffer and print it to the console.
-
-
-## Part 2. Fork-Exec (easy) [1 point]
-
-The fork system call is used to create new processes, known as child processes, 
-from the currently existing process known as the parent. When fork is called, the operating system will create a new process, including a new address space, new file descriptors and other associated metadata for the process. These will be originally copied over from the parent process.
-
-**We will explore fork() in greater detail for Lab2 and Lab3 so it is very important to be familiar with it.**
-
-The exec system call is used to run an executable file in the context of the already existing process. When exec is called, the process ID (pid) does not change, however the code, heap and stack are replaced with the new program to be executed. 
-
-Fork-Exec is a common primitive used in systems programming, as it provides a way of 
-spawning a new process and executing a program. This is for example how the 
-shell program (sh.c) works in xv6.
-
-* Write a user-space program `user/src/lab0/forkexec.c` that will take as input a string from the command-line arguments and output it to the console.
-* The program must use the fork-exec design pattern. Use the build-in echo command in order to display the text to the console. 
-
-```
-$ forkexec test input
-test input
-```
-
-## Part 3. Ping-Pong (easy) [1 point]
-
-Inter-process Communication (IPC), is a set of mechanisms provided by the operating system
-to allow processes to share information with each-other. There are many methods of IPC including using signals, message queues and shared memory however we will be exploring the use of pipes for this example user-space program.
-
-The pipe system call facilitates inter-process communication by creating a unidirectional
-communication channel between two processes. It allows one process to write data 
-into the pipe, while another process can read from it.
-
-* Write a user-space program `user/src/lab0/pingpong.c` that will use pipes in order to commutate data across two processes, which must be created using fork.
-* The processes should use pipes in order to share the \<pid\> with each-other. For simplicity, you may assume that the \<pid\> can fit in one byte, so only a single byte would need to be read from and written to the pipes.
-* The parent should send its \<pid\> to the child through the pipe and the child should print "child: received ping from \<parent-pid\>".
-* The child should then send its \<pid\> to the parent and the parent should print "parent: received pong from \<child-pid\>".
-* Both processes should exit and terminate correctly. 
-
-```
-$ pingpong 
-child: received ping from 8
-parent: received pong from 9
-```
-
-## Part 4. Maximum Memory Size (moderate) [1 point]
-
-The user-space programs execute in a virtual address space that is generated 
-by the operating system. In xv6, calls to malloc eventually hit a call to the 
-sbrk system call, which is intended to grow the processes virtual address space. However there is a limit to how much we can grow the address space, 
-and that is limited by the maximum amount of physical memory in the system.
-
-*Note: This is a rough approximation of the memory size, since part of the physical memory space is taken up by the kernel and memory-mapped I/O space. Also xv6 does not have a swap partition on the disk, so once physical memory runs out of pages, xv6 can not allocate any more memory. This is the limit you must hit.*
-
-
-* Write a user-space program `user/src/lab0/limits.c` that will be used to approximate the maximum size of a process. 
-* The program should keep allocating PGSIZE worth of data until it hits a limit, and this is denoted when the allocation function you use returns an error value (-1 for sbrk and 0 for malloc).
-* The program should then print out the maximum attainable memory size in the following format: "Maximum Memory Size: 0x%x".
-
-```
-$ limits 
-Maximum Memory Size: 0x00000000
-```
-
-## Extra Credit
-
-Often there are limits to the abstractions that the operating system
-provides. We explored an example of this in the previous section where
-we calculated the maximum memory size of a user-space program. For
-extra credit you should calculate the maximum number of files that can
-be opened at once by a single process and the maximum number of processes at once.
-
-### Maximum Number of Files Open at Once (moderate) [1 point]
-
-Extend `user/src/lab0/limits.c` to calculate the maximum number of
-files that can be opened at once by a single process in xv6.  Display
-the result as "Maximum Number of Files Open at Once: %d".
-
-*Note: This problem may be more challenging than it may seem at first
-glance.  Keep in mind that, when run by the shell, your program may
-start with some files open already.  You must comment your code to
-explain how you have reached your final calculation.*
-
-### Maximum Number of Processes (moderate) [1 point]
-
-Extend the `user/src/lab0/limits.c` to calculate the maximum number of processes that 
-can be created in xv6 at once. Display the result as "Maximum Number of Processes: %d".
-
-*Note: This problem may be more challenging than it may seem at first glance. Keep in mind that there may exist other processes that are running in the background which you will need to take into account in your program. You must comment your code to explain how you have reached your final calculation.* 
-
-```
-$ limits 
-Maximum Memory Size: 0x0000
-Maximum Number of Files Open at Once: 0
-Maximum Number of Processes: 0
-```
-
-## Grading
-
-To submit, run `scripts/submit.sh` and upload the generated `submission.zip`
-file to Gradescope.
-
-## Debugging User-Space Programs
-
-Debugging xv6 requires that we launch QEMU with the necessary flags such that it is able to sustain a remote gdb session.
-
-```bash
-./xv6-qemu -g
-```
-
-This should pause qemu from launching, and wait for a gdb session to attach. Now, we can connect to our Docker container in a separate terminal and launch gdb from the build directory.
-
-```bash
-./scripts/docker.sh --attach
-cd /xv6/build
-gdb
-```
-
-By default, gdb will be attached to debug the kernel, and gdb does not have any context 
-and symbols related to the user-space programs, as they are compiled separately 
-and loaded into xv6 through the file system. To get the symbols loaded into gdb 
-for the user-space file we need to use the `file` command. 
-
-Due to the way that gdb interacts with xv6, you will be able to set a breakpoint 
-at a particular virtual address, in this case main() which is at 0x0, 
-however other programs that run will also be aliased to the same virtual address,
-since they each have their own address space. This may require you to run the continue
-a few times before you hit the correct debug point.  
-
-```bash
-$ gdb
+Description:
+Prints the vendor ID and device ID, both in hexadecimal, of all valid PCI
+devices in the format:
+Vendor <vendor_id1> Device <device_id1>
+Vendor <vendor_id2> Device <device_id2>
 ...
-The target architecture is assumed to be i8086
-[f000:fff0]    0xffff0: ljmp   $0xf000,$0xe05b
-0x0000fff0 in ?? ()
-+ symbol-file kernel
-
-(gdb) file user/_helloworld
-A program is being debugged already.
-Are you sure you want to change the file? (y or n) y
-Load new symbol table from "user/_helloworld"? (y or n) y
-Reading symbols from user/_helloworld...
-
-(gdb) br main
-Breakpoint 1 at 0x0: file /xv6/user/src/lab0/helloworld.c, line 8.
-
-(gdb) continue
-Continuing.
 ```
+
+**For grading purposes,** the output of the devices must be ordered by bus
+number, then by device number, then by function number -- all of which are in
+ascending order. Do **not** include the `0x` prefix before any hexadecimal
+numbers.
+
+For this part, you will determine the device and vendor ID for each valid
+device attached. Read the [OSDev wiki on PCI](https://wiki.osdev.org/PCI) up to 
+and including the _"Brute Force" scan_ section for documentation on how to do
+this.
+
+Use the `inl` and `outl` instructions from Part 1 to interact with the PCI host
+controller using two port-mapped registers, `CONFIG_ADDRESS = 0xCF8` and
+`CONFIG_DATA = 0xCFC`. You can use these device registers by setting up the
+`CONFIG_ADDRESS` register appropriately and then reading from the `CONFIG_DATA`
+register.
+
+If you were writing firmware and wanted to discover all devices, you would need
+to configure all 'PCI bridges', which are a special type of PCI device, to
+forward subordinate devices to the host PCI controller. For our purposes, you
+may assume that the QEMU firmware already configures the PCI bridges to do this.
+
+### Testing
+
+QEMU has a monitor you can invoke by running `C-a c` inside QEMU. Run `info pci`
+in this monitor. This should give you a detailed listing of the PCI devices
+attached to the QEMU instance.
+
+If you examine `scripts/xv6-qemu`, you can see how we specify devices to attach
+to QEMU. Modify the script to specify additional PCI devices to test your
+implementation.
+
+## Part 3: MAC Address Querying
+
+Now that you can list every connected device, the next step is to find the
+device we are interested in: an Intel e1000 NIC. This will help us determine its
+MAC address, which is required to send data to another computer over a network.
+
+PCI devices lay out their information and control registers in regions of I/O
+ports and memory addresses. The beginning and extent of these regions can be
+derived from the Base Address Registers of a given device. With the correct
+base address and offset, you can communicate in any documented way with the
+device and do things like query its MAC address.
+
+### Requirements
+
+Implement the following system call:
+
+```c
+int whatsmymac(unsigned char *mac);
+
+Return Value:
+-1 on invalid args, 0 on success
+
+Description:
+Returns the MAC address of the NIC
+
+Usage:
+unsigned char mac[6];
+if (whatsmymac(mac) < 0) {
+  // failure
+}
+```
+
+In Part 2, you iterated through each PCI device to inspect some of its header
+fields, like Device ID and Vendor ID. You will now find the PCI device
+corresponding to our NIC and use its headers to determine its Base Address
+Register. Read the following sections from the OSDev wiki:
+- [Command Register](https://wiki.osdev.org/PCI#Command_Register)
+- [PCI Header Type 0x0](https://wiki.osdev.org/PCI#Header_Type_0x0)
+- [Base Address Registers](https://wiki.osdev.org/PCI#Base_Address_Registers)
+
+Then, to find the correct offset from the Base Address Register, read sections
+13.5.2 and 13.5.3 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf).
+
+For this part and going forward, you may find a subset of the constants
+and macros defined in [QEMU's own list](https://github.com/qemu/qemu/blob/master/hw/net/e1000_regs.h)
+helpful. You should create your own header file with a list of those you find
+relevant to your implementation.
+
+**Look it up:** what is the vendor and device ID of the Intel e1000?
+
+**Hint**: set the `Bus Master` bit of the NIC's PCI command register to enable
+the NIC to perform DMA accesses using PCI buses!
+
+### Testing
+
+`./scripts/xv6-qemu` has a `--address` option which lets you specify the MAC
+address of the NIC:
+```bash
+/xv6/build $ ./xv6-qemu --address=05:AB:1E:F0:00:0D
+```
+
+Use this option to test your implementation.
+
+## Part 4: NIC Driver & Ethernet Protocol
+
+Now that you know how to use the e1000, you'll implement a device driver for it.
+
+NICs serve the function of copying large amounts of data from your computer to
+the network and vice versa. Because of this, it's inefficient for a processor
+to copy data from or to a NIC.
+
+So, many I/O devices use a technique called Direct Memory Access (DMA), which
+allows the device to directly access the computer's physical memory. Software
+tells the device the physical address ranges it can access, and the device will
+automatically write to or read from those ranges.
+
+On initialization, you'll have to allocate and assign ranges of kernel memory
+for DMA usage. Ranges where the device can read outgoing transmissions are
+called the *transmit ring*. Ranges where the device can write incoming
+transmissions are called the *receive ring*.
+
+### Requirements
+
+Implement the following functions prototyped in `kernel/include/e1000.h` in
+`kernel/src/e1000.c`:
+- `e1000_init`: Initialization of the device
+- `e1000_transmit`: Perform packet transmission
+- `e1000_receive`: Perform packet reception
+
+First, implement `e1000_init` (transmission initialization only) by reading
+Section 14.4 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf).
+Then, implement `e1000_transmit`, which should place the data in an empty buffer
+on the transmit ring and mark the buffer for transmission. You will find
+sections 3.3.1 - 3.3.3 and 3.4 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf) helpful. It should **not** overwrite any buffers in the
+transmit ring if it is full. Pay close attention to address alignment
+requirements.
+
+Note that `e1000_transmit` is non-blocking (it doesn't wait for the packet to
+be sent). We'll now expose a blocking version of `e1000_transmit` to userspace
+through a syscall `eth_send`. This will enable the user to send Ethernet frames
+over the network. **Implement this syscall in `kernel/src/eth.c`**.
+```c
+int eth_send(char *data, int size);
+
+Return Value:
+-1 on invalid args, 0 otherwise
+
+Description:
+Sends `size` bytes of `data`, encapsulated by an Ethernet frame, using the NIC.
+Blocks until the frame is sent.
+```
+
+Consult `kernel/include/eth.h` for the `struct ethframe` definition. The fields
+of the `ethframe` are follows:
+- `dest_mac`: Source MAC address
+- `src_mac`: Destination MAC address
+- `length`: Length of the payload. Note that in the literature, this is called
+the `ethr_type` field. `ethr_type` is an overloaded field and can mean different
+things based on its value. For our purposes, we are using it as a length
+specifier
+- `payload`: Buffer of size 256 bytes. The maximum size of an Ethernet frame is
+actually 1512 bytes. To avoid colliding with other `ethr_type` values we
+restrict the size of the payload to 256 bytes
+
+As the client, we don't (yet) know the MAC address of the machine we want to
+communicate with. In such cases, setting the `dest_mac` to `0xFFFFFFFFFFFF` will
+broadcast the packet over the network.
+
+Next, you'll implement reception. Implement `e1000_init` (receive
+initialization) by following Section 14.4 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf). Then, implement `e1000_receive`, which should move
+the received data out of the buffer and free the buffer to be reused by the NIC.
+You will find sections 3.2.2, 3.2.3, and 3.2.6 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf) helpful. It should **not** free any buffers
+in the receive ring if it is full. Pay close attention to address alignment
+requirements.
+
+Analogous to `e1000_send`, `e1000_receive` is also non-blocking. However, we
+will expose a blocking version to userspace via the `eth_receive` syscall.
+**Implement this syscall in `kernel/src/eth.c`**.
+```c
+int eth_receive(char *data, int size);
+
+Return Value:
+-1 on invalid args, 0 otherwise
+
+Description:
+Receives `size` bytes of data, encapsulated by an Ethernet frame, using the NIC
+into `data`. Blocks until a frame is received.
+```
+
+**Important**: make sure that your implementation is in `kernel/src/e1000.c` and
+`kernel/src/eth.c`. Furthermore, upon sending and receiving data through the NIC, you must
+report the Ethernet frame sent or received to the autograder. You can achieve
+this by passing the frame and its size into `lab4_net_report_send` and
+`lab4_net_report_recv`. The interface is defined in
+`kernel/include/lab4_net_ag.h`.
+
+### Testing
+
+If you examine `./scripts/xv6-qemu`, you'll find that it gives you the option to
+run one of two xv6 instances: a client and a server. These are interchangeable,
+but for semantic purposes, you'll generally try to send data from the client to
+the server.
+
+When you run `./xv6-qemu`, it runs the client instance by default. You can
+choose to run the server instance by using the `--server` option.
+```bash
+/xv6/build $ ./xv6-qemu --server
+```
+
+When QEMU simulates a network device, it provides the option to record data sent
+over the device in a packet capture (.pcap) file. When running the client
+instance, data is recorded in `client.pcap`. When running the server, data is
+recorded in `server.pcap`.
+
+These files can be read with utilities like `tcpdump` or Wireshark. Ensure you
+have access to at least one of these. This will help you debug your transmission
+and reception. For example, you can use `tcpdump` as follows:
+```
+/xv6/build $ tcpdump -t -XXnr client.pcap
+```
+
+If you inspect the `.pcap` files, you should see that it describes your packet
+as an Ethernet frame.
+
+Write user-space client and server programs that use the system calls you
+implemented above. Run them on separate client and server xv6 instances. They
+should be able to communicate if implemented correctly!
+
+Note that you are not guaranteed to receive packets in-order. Ethernet makes no
+guarantee of providing an ordered byte-stream. That is the job of higher-level
+protocols like TCP and QUIC.
+
+## Part 5: Packet Filters
+
+In lecture, you learned about Extended Berkeley Packet Filters (eBPFs), which
+facilitate extensibility in operating system kernels. In this final part, you
+will provide a simple mechanism to customize the xv6 kernel by installing packet
+filters into the network stack.
+
+This lab's expectations are significantly simpler than those of eBPFs. You'll be
+implementing an in-kernel virtual machine (VM) and an interpreter for an
+instruction set, but you won't implement verification, JIT-compilation, nor
+maps. The only supported hook is within the NIC driver. Do not go overboard with
+edge cases; malicious, unsafe, or incorrect BPF programs are undefined behavior
+for this lab since you will not be implementing a verifier. You will only filter
+packet reception, not transmission.
+
+xv6 BPF VM Description:
+- Harvard architecture
+- 8 16-bit registers
+- 512 bytes of memory
+- Packets are loaded into memory address 0x0
+- Instruction store capacity of 128 instructions
+- One BPF program loaded at a time
+- One instruction pointer (`ip`), which is an index into the instruction store
+pointing to the next instruction to execute (e.g. `ip=0` refers to the first
+instruction, `ip=1` refers to the second, etc.)
+- BPF programs must end in a `ret_pass` or `ret_drop` instruction
+
+xv6 BPF VM ISA:
+```
+ld <src_addr>, <dst_reg>
+Pseudocode:
+dst_reg = mem[src_addr];
+
+ldi <imm>, <dst_reg>
+Pseudocode:
+dst_reg = imm;
+
+je <reg0>, <reg1>, <offset>
+Pseudocode:
+if (reg0 == reg1) ip += offset;
+
+jgt <reg0>, <reg1>, <offset>
+Pseudocode:
+if (reg0 > reg1) ip += offset;
+
+jge <reg0>, <reg1>, <offset>
+Pseudocode:
+if (reg0 >= reg1) ip += offset;
+
+ret_pass
+Pass the packet, exits the filter program.
+
+ret_drop
+Drop the packet, exits the filter program.
+```
+
+### Requirements
+
+Implement the following functions prototyped in `kernel/include/bpf.h`:
+```c
+void bpf_init(void);
+Description:
+Initializes the BPF VM.
+
+int bpf_load(struct bpf_insn *program, uint num_insns);
+Description:
+Loads a BPF program into the VM.
+
+Return Value:
+-1 on invalid args, 0 otherwise
+
+int bpf_run(char *pkt, uint pktsize);
+Description:
+Runs the BPF program.
+
+Return Value:
+0 to pass the packet, -1 to drop the packet
+```
+
+Place these functions appropriately in the kernel. Then, implement the following
+system call:
+```c
+int bpf_load(struct bpf_insn *program, uint num_insns);
+Description:
+Loads a xv6 BPF program into the kernel.
+
+Return Value:
+-1 on invalid args, 0 otherwise
+```
+
+### Testing
+- Try to write some simple packet filters, like filtering by address, payload 
+lengths, etc.
+
+## General Advice and Hints
+- Be careful with how you implement circular buffers, especially head and tail
+pointers
+- Consider what type of locks to use for I/O operations
+- Consider when to use host byte order vs. network byte order
+- Consider a specific C qualifier to use with memory-mapped I/O
+- Consider how memory-mapped I/O addresses must be aligned
+
+## Submission
+
+Run `scripts/submit.sh` to generate and submit `submission.zip` to Gradescope.
+
+## Grading 
+
+### Autograder
+
+This lab is partially autograded. The test cases are categorized as:
+* Part 2: PCI Device Discovery
+    * Tests 1-2
+* Part 3: MAC Address Querying
+    * Tests 3-4
+* Part 4: NIC Driver & Ethernet Protocol
+    * Tests 5-9
+* Part 5: Packet Filters
+    * Tests 10-14
+
+### Manual Grading
+
+This lab is partially manually graded. We will check for the following:
+- Mutual exclusion in newly created kernel data structures
+- Violations of the student honor code
+- Attempts to subvert the autograder
+
+This list is not exhaustive.

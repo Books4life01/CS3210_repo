@@ -22,9 +22,4 @@ set(user_SOURCES
   # Common utility programs
   src/ls.c
   src/echo.c
-
-  src/lab0/helloworld.c
-  src/lab0/forkexec.c
-  src/lab0/pingpong.c
-  src/lab0/limits.c
   )

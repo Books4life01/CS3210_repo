@@ -1,6 +1,28 @@
 struct stat;
 struct rtcdate;
 
+// bpf
+#define LD_OPCODE       0x0
+#define LDI_OPCODE      0x1
+#define JE_OPCODE       0x2
+#define JGT_OPCODE      0x3
+#define JGE_OPCODE      0x4
+#define RET_PASS_OPCODE 0x5
+#define RET_DROP_OPCODE 0x6
+
+struct bpf_insn {
+    uint8_t opcode;
+
+    uint16_t src_addr;
+
+    int16_t imm;
+    int8_t offset;
+
+    uint8_t reg0;
+    uint8_t reg1;
+    uint8_t dst_reg;
+};
+
 // system calls
 int fork(void);
 int exit(void) __attribute__((noreturn));

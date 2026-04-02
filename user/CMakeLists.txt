@@ -52,12 +52,17 @@ message("USER_PROGRAMS includes: ${l_user_programs}")
 configure_file(${CMAKE_SOURCE_DIR}/README ${CMAKE_CURRENT_BINARY_DIR}/README COPYONLY)
 
 add_custom_command(
-  OUTPUT fs.img
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/../tools/mkfs fs.img README ${l_user_programs}
+  OUTPUT fsserver.img
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/../tools/mkfs fsserver.img README ${l_user_programs}
+  DEPENDS mkfs ${CMAKE_SOURCE_DIR}/README ${l_user_programs}
+)
+
+add_custom_command(
+  OUTPUT fsclient.img
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/../tools/mkfs fsclient.img README ${l_user_programs}
   DEPENDS mkfs ${CMAKE_SOURCE_DIR}/README ${l_user_programs}
 )
 
 add_custom_target(
   makeuserfs ALL
-  DEPENDS fs.img)
-
+  DEPENDS fsserver.img fsclient.img)

@@ -36,10 +36,18 @@ add_subdirectory(user)
 
 # Whoo boy, lets build the actual boot image
 add_custom_command(
-  OUTPUT xv6.img
-  COMMAND dd if=/dev/zero of=xv6.img count=10000
-  COMMAND dd if=${CMAKE_CURRENT_BINARY_DIR}/bootblock/bootblock of=xv6.img conv=notrunc
-  COMMAND dd if=${CMAKE_CURRENT_BINARY_DIR}/kernel/kernel of=xv6.img seek=1 conv=notrunc
+  OUTPUT xv6server.img
+  COMMAND dd if=/dev/zero of=xv6server.img count=10000
+  COMMAND dd if=${CMAKE_CURRENT_BINARY_DIR}/bootblock/bootblock of=xv6server.img conv=notrunc
+  COMMAND dd if=${CMAKE_CURRENT_BINARY_DIR}/kernel/kernel of=xv6server.img seek=1 conv=notrunc
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/bootblock/bootblock ${CMAKE_CURRENT_BINARY_DIR}/kernel/kernel
+)
+
+add_custom_command(
+  OUTPUT xv6client.img
+  COMMAND dd if=/dev/zero of=xv6client.img count=10000
+  COMMAND dd if=${CMAKE_CURRENT_BINARY_DIR}/bootblock/bootblock of=xv6client.img conv=notrunc
+  COMMAND dd if=${CMAKE_CURRENT_BINARY_DIR}/kernel/kernel of=xv6client.img seek=1 conv=notrunc
   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/bootblock/bootblock ${CMAKE_CURRENT_BINARY_DIR}/kernel/kernel
 )
 
@@ -51,7 +59,6 @@ configure_file(${CMAKE_SOURCE_DIR}/scripts/gdbinit ${CMAKE_CURRENT_BINARY_DIR}/.
 
 add_custom_target(
   image ALL
-  DEPENDS buildkern buildboot xv6.img makeuserfs
+  DEPENDS buildkern buildboot xv6server.img xv6client.img makeuserfs
   #DEPENDS buildkern buildboot xv6.img
 )
-

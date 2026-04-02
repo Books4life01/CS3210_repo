@@ -11,18 +11,20 @@ include(Sources.cmake)
 add_custom_command(
   OUTPUT gen/vectors.S
   COMMAND mkdir -p gen && ${CMAKE_CURRENT_SOURCE_DIR}/tools/vectors.pl > gen/vectors.S
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tools/vectors.pl) 
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tools/vectors.pl)
 
 add_library(vectorobj OBJECT
   gen/vectors.S)
 
 add_library(kernelobjs OBJECT
-  ${kernel_SOURCES})
+  ${kernel_SOURCES}
+  ${kernel_LAB4_NET_AG})
 
 add_prefix_suffix(kernel_OBJECTS
   "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/kernelobjs.dir/"
   ".o"
-  ${kernel_SOURCES})
+  ${kernel_SOURCES}
+  ${kernel_LAB4_NET_AG})
 
 set(entryother_SOURCES
   src/asm/entryother.S)
@@ -99,4 +101,3 @@ add_custom_target(
   #DEPENDS kernel kernel.asm kernel.sym)
 
 set_property(TARGET kernelobjs PROPERTY C_STANDARD 11)
-

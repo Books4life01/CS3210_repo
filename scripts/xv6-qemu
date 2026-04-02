@@ -6,18 +6,27 @@ GDB=""
 GRAPHIC="-nographic"
 VERBOSE=false
 
+SERVER=0
+MAC_SPECIFIED=0
+fs=0
+specmac=0
+bootimg=0
+pcap=0
+
 function print_help() {
-  print "usage $0 [-c|--num-cpus=NUM_CPUS] [-g|--gdb] [-x|-x-server] [-v|--verbose] [-m|--memory=PHYS_MEMORY]"
-  print "    -h  -\? --help  -- Display this message"
-  print "    -c  --num-cpus  -- The number of CPUS to give to xv6, default is ${CPUS}"
-  print "    -g  --gdb       -- Enable gdb connections"
-  print "    -x  --x-server  -- Turn on the x server display"
-  print "    -v  --verbose   -- More verbose printing from this script"
-  print "    -m  --memory    -- Set the amount of memory to give to xv6 (default is ${MEMORY})"
+  echo "usage $0 [-c|--num-cpus=NUM_CPUS] [-g|--gdb] [-x|-x-server] [-v|--verbose] [-m|--memory=PHYS_MEMORY]"
+  echo "    -h  -\? --help  -- Display this message"
+  echo "    -c  --num-cpus  -- The number of CPUS to give to xv6, default is ${CPUS}"
+  echo "    -g  --gdb       -- Enable gdb connections"
+  echo "    -x  --x-server  -- Turn on the x server display"
+  echo "    -v  --verbose   -- More verbose printing from this script"
+  echo "    -m  --memory    -- Set the amount of memory to give to xv6 (default is ${MEMORY})"
+  echo "    -a  --address   -- The MAC address to use for the e1000 device"
+  echo "    -s  --server    -- Whether or not the currently running instance is the server"
 }
 
-OPTIONS="h?c:gxvm:"
-LONGOPTS="help,num-cpus:,gdb,x-server,verbose,memory:"
+OPTIONS="h?c:gxvm:a:s"
+LONGOPTS="help,num-cpus:,gdb,x-server,verbose,memory:,address:,server"
 
 ! PARSED=$(getopt --options=${OPTIONS} --longoptions=${LONGOPTS} --name "$0" -- "$@")
 
@@ -27,8 +36,6 @@ if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
 fi
 
 eval set -- "${PARSED}"
-
-
 
 while true; do
   case "$1" in
@@ -48,6 +55,15 @@ while true; do
       GDB="-S -gdb tcp::26000"
       shift
       ;;
+    -a|--address)
+      specmac=$2
+      MAC_SPECIFIED=1
+      shift 2
+      ;;
+    -s|--server)
+      SERVER=1
+      shift
+      ;;
     --)
       shift
       break
@@ -60,13 +76,44 @@ while true; do
   esac
 done
 
+if [[ SERVER -ne 0 ]]; then
+  fs=user/fsserver.img
+  bootimg="xv6server.img"
+  pcap=server.pcap
+  echo "Using server boot image ${bootimg}"
+  echo "Using server fs image ${fs}"
+else
+  fs="user/fsclient.img"
+  bootimg=xv6client.img
+  pcap=client.pcap
+  echo "Using client boot image ${bootimg}"
+  echo "Using client fs image ${fs}"
+fi
 
+if [[ MAC_SPECIFIED -ne 0 ]]; then
+  echo "Using specified address ${specmac}"
+  mac=${specmac}
+elif [[ SERVER -ne 0 ]]; then
+  mac=12:13:14:15:16:27
+  echo "Using server default MAC ${mac}"
+else
+  mac=12:13:14:15:16:17
+  echo "Using client default MAC ${mac}"
+fi
 
-SCRIPT="qemu-system-i386 ${GRAPHIC} -drive file=user/fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp ${CPUS} -m ${MEMORY} ${GDB}"
+NETOPTS="\
+-netdev socket,id=net1,mcast=230.0.0.1:1234 \
+-device e1000,netdev=net1,mac=${mac} \
+-object filter-dump,id=f1,netdev=net1,file=${pcap}"
+
+SCRIPT="\
+qemu-system-i386 ${GRAPHIC} \
+-drive file=${fs},index=1,media=disk,format=raw \
+-drive file=${bootimg},index=0,media=disk,format=raw \
+${NETOPTS} -smp ${CPUS} -m ${MEMORY} ${GDB}"
 
 if [[ ${VERBOSE} ]]; then
   echo "COMMAND: ${SCRIPT}"
 fi
 
 ${SCRIPT}
-

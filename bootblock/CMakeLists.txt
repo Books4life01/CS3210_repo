@@ -45,5 +45,3 @@ add_custom_target(
   DEPENDS bootblockobjs bootblock.asm bootblock)
 
 set_property(TARGET bootblockobjs PROPERTY C_STANDARD 11)
-
-

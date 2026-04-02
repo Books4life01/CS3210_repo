@@ -37,3 +37,10 @@ set(kernel_SOURCES
 	src/vm.c
   )
 
+set(kernel_LAB4_NET_AG
+  # Switch this between lab4_net_ag.c and lab4_net_ag_noprint.c to enable/disable
+  #   report printing
+
+  src/lab4_net_ag.c
+#   src/lab4_net_ag_noprint.c
+  )
