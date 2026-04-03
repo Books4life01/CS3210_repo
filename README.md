@@ -10,13 +10,11 @@ discovers, initializes, and communicates with devices on a computer. One useful
 protocol is Peripheral Component Interconnect, or PCI, which we'll use to
 initialize and use a NIC: the Intel e1000.
 
-This lab presents an extra credit opportunity. If you pass at least the first 9
-tests, you can receive a bonus of up to 1% towards your overall course grade.
-Once you pass the first 9 tests, the bonus will be (your autograder score * 1)%.
-Manual grading is not factored into the bonus. For instance, if you only pass
-the first 9 tests (22/32 autograder score), you will get (22/32 * 1)% added to
-your overall grade. If you do not pass the first 9 tests, you will not receive
-any bonus.
+In this lab, you can earn a bonus of up to 1% towards your overall course grade.
+To qualify, you must pass Tests 1-9; failing any of Tests 1-9 yields a 0% bonus.
+If qualified, your exact bonus is calculated strictly as (autograder points
+earned / maximum possible autograder points) * 1%. Manual grading scores are
+entirely excluded from this calculation.
 
 **Important**: if you submit without completing all the parts, make sure to
 implement all syscall stubs mentioned in this lab to prevent `make failure`. We
