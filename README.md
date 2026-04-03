@@ -10,6 +10,14 @@ discovers, initializes, and communicates with devices on a computer. One useful
 protocol is Peripheral Component Interconnect, or PCI, which we'll use to
 initialize and use a NIC: the Intel e1000.
 
+This lab presents an extra credit opportunity. If you pass at least the first 9
+tests, you can receive a bonus of up to 1% towards your overall course grade.
+Once you pass the first 9 tests, the bonus will be (your autograder score * 1)%.
+Manual grading is not factored into the bonus. For instance, if you only pass
+the first 9 tests (22/32 autograder score), you will get (22/32 * 1)% added to
+your overall grade. If you do not pass the first 9 tests, you will not receive
+any bonus.
+
 **Important**: if you submit without completing all the parts, make sure to
 implement all syscall stubs mentioned in this lab to prevent `make failure`. We
 cannot give submissions back due to failed compilations.
@@ -381,10 +389,10 @@ lengths, etc.
 ## General Advice and Hints
 - Be careful with how you implement circular buffers, especially head and tail
 pointers
-- Consider what type of locks to use for I/O operations
+- Use `sleeplocks` instead of `spinlocks` to protect I/O operations
+- Use the `volatile` C qualifier when accessing memory-mapped I/O addresses
 - Consider when to use host byte order vs. network byte order
-- Consider a specific C qualifier to use with memory-mapped I/O
-- Consider how memory-mapped I/O addresses must be aligned
+- Consider how memory-mapped I/O / DMA addresses must be aligned
 
 ## Submission
 
