@@ -307,7 +307,7 @@ packet reception, not transmission.
 
 xv6 BPF VM Description:
 - Harvard architecture
-- 8 16-bit registers
+- 8 byte-width registers
 - 512 bytes of memory
 - Packets are loaded into memory address 0x0
 - Instruction store capacity of 128 instructions
