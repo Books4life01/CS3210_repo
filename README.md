@@ -200,7 +200,7 @@ be sent). We'll now expose a blocking version of `e1000_transmit` to userspace
 through a syscall `eth_send`. This will enable the user to send Ethernet frames
 over the network. **Implement this syscall in `kernel/src/eth.c`**.
 ```c
-int eth_send(char *data, int size);
+int eth_send(char *data, uint size);
 
 Return Value:
 -1 on invalid args, 0 otherwise
@@ -237,7 +237,7 @@ Analogous to `e1000_send`, `e1000_receive` is also non-blocking. However, we
 will expose a blocking version to userspace via the `eth_receive` syscall.
 **Implement this syscall in `kernel/src/eth.c`**.
 ```c
-int eth_receive(char *data, int size);
+int eth_receive(char *data, uint size);
 
 Return Value:
 -1 on invalid args, 0 otherwise
