@@ -212,8 +212,8 @@ Blocks until the frame is sent.
 
 Consult `kernel/include/eth.h` for the `struct ethframe` definition. The fields
 of the `ethframe` are follows:
-- `dest_mac`: Source MAC address
-- `src_mac`: Destination MAC address
+- `dest_mac`: Destination MAC address
+- `src_mac`: Source MAC address
 - `length`: Length of the payload. Note that in the literature, this is called
 the `ethr_type` field. `ethr_type` is an overloaded field and can mean different
 things based on its value. For our purposes, we are using it as a length
@@ -233,7 +233,7 @@ You will find sections 3.2.2, 3.2.3, and 3.2.6 of the [Intel e1000 manual](https
 in the receive ring if it is full. Pay close attention to address alignment
 requirements.
 
-Analogous to `e1000_send`, `e1000_receive` is also non-blocking. However, we
+Analogous to `e1000_transmit`, `e1000_receive` is also non-blocking. However, we
 will expose a blocking version to userspace via the `eth_receive` syscall.
 **Implement this syscall in `kernel/src/eth.c`**.
 ```c
