@@ -27,6 +27,10 @@ Note that these are just estimates. Your completion time will vary based on
 your grasp of the course material and proficiency with navigating xv6. We
 highly recommend that you read chapters 3 to 5 of the xv6 manual.
 
+**Important**: if you submit without completing all the parts, make sure to
+implement all syscall stubs mentioned in this lab to prevent `make failure`. We
+cannot give submissions back due to failed compilations.
+
 **NOTE:** Throughout this lab, you will have to test the concurrency of your
 system.  You will have to run the `xv6-qemu` script with multiple cpus (default
 is 1 cpu) using the `-c <CPUS>` or `--num-cpus=<CPUS>` flags.  We recommend
@@ -266,7 +270,7 @@ of you scheduling algorithm, and analysing the performance results that were gat
 and table that will be useful in your writeup. Please name the file `report.pdf` and place it in the project root
 (double-check your `submission.zip` to ensure it is included when you submit).
 
-*If you don't have this report, we won't grade any extra credit attempts.*
+*If you don't have this report, we won't grade any extra credit attempts. Your scheduler must outperform the FCFS/RR schedulers to receive all extra credit points.*
 
 ## Part 2 (hard) -- Threading
 
