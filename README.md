@@ -289,7 +289,7 @@ information is placed at special symbols called `__STAB_BEGIN__` and
 
 Having you write a library that parses the STAB information would be a little
 too tedious for a class project, so we have instead provided you with a stab
-library in the file `kernel/stab.c` and its associated header
+library in the file `kernel/src/stab.c` and its associated header
 `kernel/include/stab.h`.
 
 The library includes the following relevant functions:
@@ -489,6 +489,8 @@ We encourage you to familiarize yourself with the kernel's `kinit` functions,
 and physical memory allocation functions, as they will likely be useful in
 completing this exercise.
 
+We also suggest you test with different amounts of RAM. You can do this with the `-m` flag, such as `./xv6-qemu -m 128`.
+
 ## Grading
 
 As with all labs in this course, the lab has an associated autograder on
@@ -504,8 +506,8 @@ To submit, run `scripts/submit.sh` and upload the generated `submission.zip`
 file to [Gradescope][gradescope].
 
 Test breakdown:
-* Tests 1-3: Part 1
-* Tests 4-7: Part 2
+* Tests 1-3: Part 2 (Backtrace)
+* Tests 4-7: Part 3 (Boot)
 
 **NOTE:** Any unauthorized attempt to subvert or attack the autograder will be
 considered a violation of academic integrity and will be punished. The
