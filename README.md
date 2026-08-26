@@ -133,7 +133,7 @@ lines.
 You must create a header `backtrace.h` (located in `kernel/include/`) with the
 declaration of the `backtrace()` function (but not definition, definitions
 generally belong in c files), such that any kernel file including `backtrace.h`
-may run the `backtrace()` function.
+may run the `backtrace()` function. Make sure to add your .c file with the backtrace implementation to `kernel/Sources.cmake` so you can compile and test your implementation.
 
 ### The Format
 
