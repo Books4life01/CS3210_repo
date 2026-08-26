@@ -489,7 +489,7 @@ We encourage you to familiarize yourself with the kernel's `kinit` functions,
 and physical memory allocation functions, as they will likely be useful in
 completing this exercise.
 
-We also suggest you test with different amounts of RAM. You can do this with the `-m` flag, such as `./xv6-qemu -m 128`.
+We also suggest you test with different amounts of RAM via `-m`, which would look like this: `./xv6-qemu -m 128` (128 MB) or `./xv6-qemu -m 1G` (1 GB).
 
 ## Grading
 
