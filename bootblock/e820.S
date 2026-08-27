@@ -11,7 +11,7 @@ dest_addr:
   .word 0x0
 
 
-# The desetination adder (where the data will be stored) is passed in eax
+# The destination adder (where the data will be stored) is passed in eax
 # Makes the e820 bios call.  The result of the call will be stored in the
 # address passed in ax (note only 16-bits available).
 #
