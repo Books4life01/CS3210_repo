@@ -36,6 +36,22 @@ seta20.2:
   movb    $0xdf,%al               # 0xdf -> port 0x60
   outb    %al,$0x60
 
+//supply a destination address
+xorw %ax, %ax
+mov dest_addr, %ax 
+
+//Call e820
+
+call do_e820
+
+//at the destination adress at +0 4 byte number of records iwll be stores
+// followed by an array of records
+// E820 records are 24 bytes in size, and have the following format:
+// +0 : an 8-byte physical_address field
+// +8 : an 8-byte length field
+// +16 : a 4-byte type field
+// +20 : a 4 byte apic3 field (unused)
+
   # Switch from real to protected mode.  Use a bootstrap GDT that makes
   # virtual addresses map directly to physical addresses so that the
   # effective memory map doesn't change during the transition.
@@ -86,3 +102,5 @@ gdtdesc:
   .word   (gdtdesc - gdt - 1)             # sizeof(gdt) - 1
   .long   gdt                             # address gdt
 
+dest_addr:
+  .word 0x0 # set an adress here

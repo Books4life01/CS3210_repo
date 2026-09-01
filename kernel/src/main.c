@@ -22,6 +22,7 @@ int
 main(void)
 {
   kinit1(end, P2V(4*1024*1024)); // phys page allocator
+  //Here I need to get the number of entries from memory and then iterate through the records to determine hwo much memory i have
   kvmalloc(PHYSTOP); // kernel page table
   mpinit();        // detect other processors
   lapicinit();     // interrupt controller
