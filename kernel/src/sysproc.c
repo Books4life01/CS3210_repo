@@ -6,11 +6,18 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "backtrace.h"
 
 int
 sys_fork(void)
 {
   return fork();
+}
+
+int
+sys_backtrace(void){
+  backtrace();
+  return 0;
 }
 
 int

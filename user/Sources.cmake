@@ -21,5 +21,6 @@ set(user_SOURCES
 
   # Common utility programs
   src/ls.c
+  src/btrace_test.c
   )
 

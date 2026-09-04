@@ -9,6 +9,7 @@
 #include "proc.h"
 #include "string.h"
 #include "stdio.h"
+#include "backtrace.h"
 
 static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
@@ -23,6 +24,10 @@ main(void)
 {
   kinit1(end, P2V(4*1024*1024)); // phys page allocator
   //Here I need to get the number of entries from memory and then iterate through the records to determine hwo much memory i have
+
+  
+
+
   kvmalloc(PHYSTOP); // kernel page table
   mpinit();        // detect other processors
   lapicinit();     // interrupt controller
@@ -40,6 +45,34 @@ main(void)
   kinit2(P2V(4*1024*1024), P2V(PHYSTOP), PHYSTOP); // must come after startothers()
   userinit();      // first user process
   mpmain();        // finish this processor's setup
+}
+
+
+struct e820record{
+  long phhys_addr;
+  long length;
+  uint type;
+  uint apic;
+};
+
+void findFreeMemory(){
+  uint* meminfo = MEM_INFO;
+  uint size = meminfo[0];
+
+  long total_memory = 0;
+
+  struct e820record cur_record;
+
+  struct e820record* arr = (meminfo+1);
+
+  for(int i = 0; i < size; i++){
+    cur_record = arr[i];
+    if(cur_record.type ==1){
+      total_memory+=cur_record.length;
+    }
+  }
+
+
 }
 
 // Other CPUs jump here from entryother.S.

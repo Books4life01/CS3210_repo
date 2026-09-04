@@ -11,6 +11,7 @@ set(kernel_SOURCES
 
   # C Files
   src/bio.c
+  src/backtrace.c
 	src/console.c
 	src/exec.c
 	src/file.c

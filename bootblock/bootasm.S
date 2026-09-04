@@ -37,12 +37,12 @@ seta20.2:
   outb    %al,$0x60
 
 //supply a destination address
-xorw %ax, %ax
-mov dest_addr, %ax 
+//xorw %ax, %ax
+//mov dest_addr, %ax 
 
 //Call e820
 
-call do_e820
+//call do_e820
 
 //at the destination adress at +0 4 byte number of records iwll be stores
 // followed by an array of records
