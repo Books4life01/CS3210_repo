@@ -325,8 +325,9 @@ submission may be audited.
 
 A breakdown of the autograder test cases is shown below:
 
-Tests 1-8: CoW and Lazy Zeroing
-Tests 9-13: CoW only
+**Tests 1-8:** CoW and Lazy Zeroing
+
+**Tests 9-13:** CoW only
 
 #### Hand Grading
 A portion of the lab will be hand graded. This is separate from the autograder
