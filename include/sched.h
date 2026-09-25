@@ -5,7 +5,6 @@
 
 #define SCHED_FIFO 0
 #define SCHED_RR 1
-#define SCHED_OTHER 2
 
 struct schedinfo 
 {

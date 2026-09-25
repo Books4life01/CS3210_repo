@@ -183,95 +183,6 @@ event which causes `p2` to suspend.
 
 All processes should default to `SCHED_RR` with a priority of 0
 
-## Part 1 Extra Credit (moderate) -- Custom Scheduling Algorithm and Evaluation 
-
-If you have successfully implemented FIFO and RR, this is an opportunity to design your
-own scheduling algorithm, and evaluate its performance with respect to your prior algorithms. 
-
-##### Custom Scheduling Algorithm
-
-This is the open-ended design portion of the assignment. Feel free to implement ANY scheduling algorithm, 
-which you have studied in class, or which you have done your own research on. 
-Below are a few suggestions of potential algorithms you may want to consider:
-- Linux Completely Fair Scheduler
-- Multilevel Queue Scheduling
-- Multi-Queue Multiprocessor Scheduing (Per-processor Queue)
-- Cache Affinity Scheduling
-
-##### Gathering Statistics
-
-In order to evaluate the performance of your scheduling algorithm, you will need to 
-implement a mechanism for gathering scheduling statistics.
-For the purpose of measuring timing, take a look at `allocproc()`, `sleep()`, `yield()`, and `schedule()`, 
-all of which are boundries which you may need to measure a given statistic. 
-
-You must implement all of these measurements, though you may add intermediary values as necessary in 
-order to properly calculate these statistics. 
-
-The unit of measurement that you must use for these statistics is xv6 `ticks`. This is a global
-counter in the kernel that is incremented for every time-quantum that has passed. 
-
-```
-/* include/sched.h */
-struct schedinfo 
-{
-  uint creation_time;  // ticks when the process was created
-  uint exit_time;      // ticks when the process exited
-  uint response_time;  // ticks from creation to exit (user-centric measure)
-  uint execution_time; // ticks spent executing on a cpu
-  uint wait_time;      // ticks spent waiting in ready queue
-  uint io_time;        // ticks spent waiting for and executing in I/O 
-};
-```
-
-In order to retrieve these statistics from user-space, you will need to implement
-a specialized wait system-call that will take in a pointer a user `schedinfo struct`, and will 
-fill these information when the process exists.
-
-```
-int waitinfo(struct schedinfo *info)
-
-Arguments:
-  info -- pointer to a struct schedinfo that will be filled in with the correspoinding processes statistics
-
-Return:
-  -1 on error, pid on success
-
-Behavior:
-  Same behavior as wait with additional performance measurement features
-
-```
-
-##### Performance Evaluation
-
-Now that you have implemented your own scheduler, you will need to evaluate its performance compared to 
-Round-Robin and FCFS. We have provided a benchmark that you are able to run in order to gather your data `workload`. 
-
-_Once you have `setscheduler` and `waitinfo` implemented, make sure to update the `workload.c` file to utilize these functions by uncommenting the respective code._
-
-As discussed in class, a method for evaluating the performance of schedulers is to plot the 
-cumulative distribution of end-to-end latency (creation -> exit response time). Plot the latency
-on a cdf curve and note the P50, P95 and P99 scores. Feel free to draw additional graphs to represent your data
-in a visualizable format, in addition to your latency cdf.
-
-Below is an example of a cdf that was gathered of FCFS, Round-Robin and an additonal improved scheduler running the xv6 workload on 4 CPUs:
-
-![latency cdf](images/latency_cdf.png)
-
-A note on the statistics gathered, since we are running xv6 on top of an emulator
-such as qemu rather than on bare-metal, results may strongly vary depending on
-host device and the performance capabilities of the emulator. 
-
-##### Technical Writeup 
-
-As you have the freedom to implement any scheduling algorithm, you must explain your 
-design decisions and present your performance measurements. You must submit a ~1 page writeup detailing the implementation
-of you scheduling algorithm, and analysing the performance results that were gathered. Include any relevant graphs
-and table that will be useful in your writeup. Please name the file `report.pdf` and place it in the project root
-(double-check your `submission.zip` to ensure it is included when you submit).
-
-*If you don't have this report, we won't grade any extra credit attempts. Your scheduler must outperform the FCFS/RR schedulers to receive all extra credit points.*
-
 ## Part 2 (hard) -- Threading
 
 What is a thread, and how do we build it?  Like a process, a thread represents
@@ -691,10 +602,9 @@ the following:
 #### Point Breakdown
 - 100 pts - Autograder
 - 25 pts - Hand Grading
-- 6 pts - Checkpoint 
-- 6 pts - Extra Credit Scheduler
+- 6 pts - Checkpoint
 
-Total lab grade is 125pts, so the maximum attainable score is 137pts/125pts.
+Total lab grade is 125pts, so the maximum attainable score is 131pts/125pts.
 The checkpoint will only consist of Parts 1 and 2, which are testcases 1-21, and
 will be percentage based, meaning that you will receive points relative to the percentage 
 on the autograder for only those test. All submissions are to be made in the Lab3 autograder.
