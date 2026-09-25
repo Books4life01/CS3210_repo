@@ -23,12 +23,5 @@ set(user_SOURCES
   # Common utility programs
   src/ls.c
   src/cat.c
-
-  # Benchmark
-  src/benchmark/mmult.c
-  src/benchmark/compress.c
-  src/benchmark/ping.c
-  src/benchmark/networkd.c
-  src/workload.c
   )
 
