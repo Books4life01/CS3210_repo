@@ -5,9 +5,6 @@ scheduling and concurrency. This lab consists primarily of three parts:
 First, you will be extending xv6's scheduler to support multiple new schedulers.
 Second, you will be constructing a kernel-space threading library. 
 Third, you will be implementing a number of synchronization primitives.
-This lab also includes an extra-credit opportunity that allows you to design your 
-own scheduling algorithm and benchmark its performance relative to 
-the required scheduling baselines!
 
 This is a *large* lab, larger than the labs you've done so far, so be warned! 
 
