@@ -11,8 +11,7 @@ This is a *large* lab, larger than the labs you've done so far, so be warned!
 To help you stay organized, we introduced a bonus "checkpoint" opportunity. 
 Students' submissions will automatically be evaluated on Parts 1 and 2 (tests 1-21).
 The percentage of tests in that range correctly passed by the checkpoint deadline
-will count towards a checkpoint bonus! Please note that the custom scheduler
-will NOT be required/counted for the checkpoint bonus.
+will count towards a checkpoint bonus!
 
 To give a sense of how long it may take to complete each part, we've marked
 them with the following labels:
