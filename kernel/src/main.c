@@ -16,6 +16,7 @@ static void mpmain(void)  __attribute__((noreturn));
 extern pde_t *kpgdir;
 extern char end[]; // first address after kernel loaded from ELF file
 
+uint findFreeMemory(void);
 // Bootstrap processor starts running C code here.
 // Allocate a real stack and switch to it, first
 // doing some setup required for memory allocator to work.
@@ -25,10 +26,10 @@ main(void)
   kinit1(end, P2V(4*1024*1024)); // phys page allocator
   //Here I need to get the number of entries from memory and then iterate through the records to determine hwo much memory i have
 
-  
+  uint max_memory_adress = findFreeMemory();
 
 
-  kvmalloc(PHYSTOP); // kernel page table
+  kvmalloc(max_memory_adress); // kernel page table
   mpinit();        // detect other processors
   lapicinit();     // interrupt controller
   seginit();       // segment descriptors
@@ -36,41 +37,64 @@ main(void)
   ioapicinit();    // another interrupt controller
   consoleinit();   // console hardware
   uartinit();      // serial port
+
   pinit();         // process table
   tvinit();        // trap vectors
   binit();         // buffer cache
   fileinit();      // file table
   ideinit();       // disk 
   startothers();   // start other processors
-  kinit2(P2V(4*1024*1024), P2V(PHYSTOP), PHYSTOP); // must come after startothers()
+  kinit2(P2V(4*1024*1024), P2V(max_memory_adress), max_memory_adress); // must come after startothers()
   userinit();      // first user process
+
   mpmain();        // finish this processor's setup
+
 }
 
 
 struct e820record{
-  long phhys_addr;
-  long length;
-  uint type;
-  uint apic;
+  unsigned long long phys_addr;
+  unsigned long long length;
+  int type;
+  int apic;
 };
-
-void findFreeMemory(){
-  uint* meminfo = MEM_INFO;
+//rough draft for maybe what were supposed to do for part 2?
+uint findFreeMemory(){
+  uint* meminfo = (uint*)P2V(MEM_INFO);
   uint size = meminfo[0];
-
-  long total_memory = 0;
+  uint max_mem_adress = 0;
+  cprintf("%d total segments\n", size);
 
   struct e820record cur_record;
 
-  struct e820record* arr = (meminfo+1);
+  struct e820record* arr = (struct e820record*)(meminfo+1);
 
   for(int i = 0; i < size; i++){
-    cur_record = arr[i];
+            cur_record = arr[i];
+
+//  cprintf("Segment %d: type %d, start 0x%x%08x, length %d\n",
+//         i, 
+//         cur_record.type, 
+//         (uint)(cur_record.phys_addr >> 32), (uint)cur_record.phys_addr,
+//         cur_record.length);    
     if(cur_record.type ==1){
-      total_memory+=cur_record.length;
+      uint seg_end = (uint)(cur_record.phys_addr+cur_record.length);
+      // cprintf("cur_seg_end %p\n", seg_end);
+
+      if(seg_end>max_mem_adress){
+        max_mem_adress = seg_end;
+      }
     }
   }
+
+
+  //devspace-kerbase is the max amount of space available for virtual adresses, thus the size of the acessilbel memory msut be less than tahtg
+  if(max_mem_adress > DEVSPACE-KERNBASE){
+    max_mem_adress = DEVSPACE-KERNBASE;
+  }
+  // cprintf("MaxMemAdress %p\n", max_mem_adress);
+
+  return max_mem_adress;
 
 
 }

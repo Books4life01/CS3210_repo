@@ -37,12 +37,13 @@ seta20.2:
   outb    %al,$0x60
 
 //supply a destination address
-//xorw %ax, %ax
-//mov dest_addr, %ax 
+//This program starts at x7c00
+
+mov dest_addr, %ax 
 
 //Call e820
 
-//call do_e820
+call do_e820
 
 //at the destination adress at +0 4 byte number of records iwll be stores
 // followed by an array of records
@@ -103,4 +104,4 @@ gdtdesc:
   .long   gdt                             # address gdt
 
 dest_addr:
-  .word 0x0 # set an adress here
+  .word 0x7E00 # word is 16 bit
