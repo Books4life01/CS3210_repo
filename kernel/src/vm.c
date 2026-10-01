@@ -7,9 +7,14 @@
 #include "proc.h"
 #include "elf.h"
 #include "lab2_ag.h"
+#include "spinlock.h"
 
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()
+
+//using kmem lock for ref counts
+struct spinlock ref_lock;
+int ref_counts[PHYSTOP/PGSIZE];
 
 // Set up CPU's kernel segment descriptors.
 // Run once on entry on each CPU.
@@ -328,7 +333,6 @@ copyuvm(pde_t *pgdir, uint sz)
   pde_t *d;
   pte_t *pte;
   uint pa, i, flags;
-  char *mem;
 
   if((d = setupkvm()) == 0)
     return 0;
@@ -339,13 +343,33 @@ copyuvm(pde_t *pgdir, uint sz)
       panic("copyuvm: page not present");
     pa = PTE_ADDR(*pte);
     flags = PTE_FLAGS(*pte);
-    if((mem = kalloc()) == 0)
-      goto bad;
-    lab2_pgcopy(mem, (char*)P2V(pa), i);
-    if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0) {
-      kfree(mem);
+   
+    //COLE's CODE
+
+    //If  the page has W=1, we set COW=1; otherwise we jsut leave as be
+    //when a trap is handling a write fault, if COW is set it will set W=1 after copying, otherwise it wont because that page is read only
+    //regardless we can just copy instead of allocating a new page
+    if(*pte&PTE_W||*pte&PTE_COW){
+      //set copy on write flags for both pte's
+      flags |= PTE_COW;
+      *pte |= PTE_COW;
+      //disable write for both pte's
+      flags &= ~PTE_W;
+      *pte &= ~PTE_W;
+      invlpg((char*)i);
+    }
+
+       
+    if(mappages(d, (void*)i, PGSIZE, pa, flags) < 0) {
       goto bad;
     }
+    acquire(&ref_lock);  
+    //update ref counts
+    ref_counts[pa>>12]+=1;
+    release(&ref_lock); 
+       
+    //END COLE CODE
+
   }
   return d;
 

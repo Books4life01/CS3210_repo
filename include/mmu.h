@@ -96,7 +96,9 @@ struct segdesc {
 #define PTE_P           0x001   // Present
 #define PTE_W           0x002   // Writeable
 #define PTE_U           0x004   // User
-#define PTE_PS          0x080   // Page Size
+#define PTE_PS          0x080   // Page 
+//Custom Cole COde Copy on Write flag
+#define PTE_COW         0x200 //indicates if the page is being used in copy on write
 
 // Address in page table or page directory entry
 #define PTE_ADDR(pte)   ((uint)(pte) & ~0xFFF)

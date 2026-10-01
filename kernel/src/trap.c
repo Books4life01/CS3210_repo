@@ -7,6 +7,9 @@
 #include "proc.h"
 #include "traps.h"
 #include "spinlock.h"
+#include "lab2_ag.h"
+#include <stddef.h>
+
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -71,6 +74,78 @@ trap(struct trapframe *tf)
     uartintr();
     lapiceoi();
     break;
+  //START COLE CODE
+  case T_PGFLT:
+    //IF we hit a page fault, if the page is present, and COW is set then its a COW fault
+    lab2_report_pagefault(tf);
+    //faulting page is put in cr2
+    uint va = PGROUNDDOWN(rcr2());
+    
+    pde_t* pgdir = myproc()->pgdir;
+
+
+    pde_t pde = pgdir[PDX(va)];
+    if(!(pde&PTE_P)){
+      myproc()->killed=1;
+      exit();
+    }
+    pte_t* pte = (pte_t*)P2V(PTE_ADDR(pde))+PTX(va);
+    
+    char* mem;
+    
+    if((*pte & PTE_P) && (*pte&PTE_COW) && (tf->err & 2) ){//if the page is present its a copy on write issue
+      
+      acquire(&ref_lock);
+      
+      if(ref_counts[(PTE_ADDR(*pte)>>12)]<=1){      
+        release(&ref_lock);  
+        //if its not a shared reference page, then we can just set its write bit back
+        *pte |=PTE_W;
+        //if no additional refs clear COWs
+        *pte &=~PTE_COW;
+        invlpg((char*)va);
+        break;
+
+      }
+      release(&ref_lock);
+      //otherwise we need to copy the page
+
+      //kalloc a new page
+      if ((mem = kalloc())==0){
+        //out of memeory kill the process; xv6 does not handle swapping about memory from disk
+        myproc()->killed=1;
+        exit();
+      }
+      //copy the new mage into mem
+      lab2_pgcopy(mem, (char*)P2V(PTE_ADDR(*pte)), va);
+
+      //save the old physical adress so we can change its ref count
+      uint pa = PTE_ADDR(*pte);
+
+
+      acquire(&ref_lock);
+
+      //change PPN of the pte
+      *pte = PTE_ADDR(V2P(mem)) | PTE_FLAGS(*pte);
+
+
+      //decrease ref count for the old_page
+      ref_counts[(PTE_ADDR(pa)>>12)]-=1;
+      ref_counts[(PTE_ADDR(V2P(mem))>>12)]=1;//set new page ref count to 1
+      *pte |=PTE_W;
+      *pte &=~PTE_COW;
+      release(&ref_lock);
+
+
+      
+      
+      invlpg((char*)va);
+      break;
+
+    }  
+    myproc()->killed=1;
+    exit();
+    //END COLE CODE
   case T_IRQ0 + 7:
   case T_IRQ0 + IRQ_SPURIOUS:
     cprintf("cpu%d: spurious interrupt at %x:%x\n",
