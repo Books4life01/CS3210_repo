@@ -1,7 +1,7 @@
 # Lab 3 - Scheduling and Threading
 
-The purpose of this lab is to introduce you to the concepts of
-scheduling and concurrency. This lab consists primarily of three parts:  
+The purpose of this lab is to introduce you to the concepts of scheduling and
+concurrency.
 - First, you will be extending xv6's scheduler to support multiple new schedulers.
 - Second, you will be constructing a kernel-space threading library. 
 - Third, you will be implementing a number of synchronization primitives.
@@ -159,8 +159,8 @@ in the scheduler queue.
 
 
 ##### Nit:
-Do not tamper with the APIC `TIMER` or `PERIODIC` as you will be modifying the 
-external timer which interrupts the CPU for scheduling decisions.
+Do not tamper with the APIC `TIMER` or `PERIODIC` as doing so would modify the 
+external timer that interrupts the CPU for scheduling decisions.
 
 If another process becomes a better candidate than the currently running process,
 the kernel must immediately switch to running that process.
@@ -309,7 +309,7 @@ int thread_wait(int pid);
 ```
 
 These functions are declared in `user/include/threads.h`. You will implement
-them in `user/include/threads.c`. Be warned, despite this simple interface,
+them in `user/src/threads.c`. Be warned, despite this simple interface,
 these functions actually have tricky implementations, particularly when
 attempting to safely avoid memory leaks.
 
