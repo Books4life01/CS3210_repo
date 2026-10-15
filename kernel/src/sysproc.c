@@ -89,3 +89,56 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+int sys_setscheduler(void){
+  int pid, policy, priority;
+
+  if(argint(0, &pid) < 0 || argint(1, &policy) < 0 || argint(2, &priority) < 0){
+    return -1;
+  }
+  return setscheduler(pid, policy, priority);
+}
+int sys_clone(void){
+  void* stack;
+  int stack_size;
+
+  if(argptr(0, (char**)&stack, sizeof(stack)) < 0 || argint(1, &stack_size) < 0){
+    return -1;
+  }
+  return clone(stack, stack_size);
+}
+int sys_waitpid(void){
+  int pid;
+
+  if(argint(0, &pid) < 0 ){
+    return -1;
+  }
+  return waitpid(pid);
+}
+int sys_park(void){
+  void* chan;
+
+  if(argptr(0, (char**)&chan, sizeof(chan)) < 0 ){
+    return -1;
+  }
+  return park(chan);
+}
+int sys_setpark(void){
+  void* chan;
+
+  if(argptr(0, (char**)&chan, sizeof(chan)) < 0 ){
+    return -1;
+  }
+  return setpark(chan);
+}
+int sys_unpark(void){
+  void* chan;
+
+  if(argptr(0, (char**)&chan, sizeof(chan)) < 0 ){
+    return -1;
+  }
+  return unpark(chan);
+}
+
+
+

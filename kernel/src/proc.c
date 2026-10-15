@@ -6,10 +6,12 @@
 #include "mmu.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "sched.h"
 
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
+  int rr_pointer;
 } ptable;
 
 static struct proc *initproc;
@@ -68,7 +70,7 @@ myproc(void) {
 //PAGEBREAK: 32
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize
-// state required to run in the kernel.
+// state reqwuired to run in the kernel.
 // Otherwise return 0.
 static struct proc*
 allocproc(void)
@@ -88,6 +90,8 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->priority = 0;
+  p->policy = SCHED_RR;
 
   release(&ptable.lock);
 
@@ -218,6 +222,7 @@ fork(void)
 
   release(&ptable.lock);
 
+
   return pid;
 }
 
@@ -323,6 +328,9 @@ void
 scheduler(void)
 {
   struct proc *p;
+  struct proc *rr_p;
+  struct proc *fifo_p;
+
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -330,13 +338,61 @@ scheduler(void)
     // Enable interrupts on this processor.
     sti();
 
-    // Loop over process table looking for process to run.
-    acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
 
-      // Switch to chosen process.  It is the process's job
+
+    acquire(&ptable.lock);
+
+    //find highest prioirty earliest start time fifo process
+
+    int selectedFifo = -1;
+    int highestPriorityFIFO = 0;
+    int lowestPid = -1;//tracks creation time
+
+
+    int highestPriorityRR = 0;
+    int selectedRR = -1;
+
+
+    for(int i = 0; i < NPROC; i++){
+      fifo_p = &ptable.proc[i];
+      rr_p = &ptable.proc[(ptable.rr_pointer+i+1)%NPROC];//starting the search at the last location of the rr_pointer
+
+     
+
+      if(fifo_p->policy==SCHED_FIFO&&fifo_p->state==RUNNABLE){
+          if(selectedFifo== -1 || fifo_p->priority >highestPriorityFIFO ){
+            highestPriorityFIFO = fifo_p->priority;
+            lowestPid = fifo_p->pid;
+            selectedFifo = i;
+          }
+          else if(fifo_p->priority == highestPriorityFIFO &&fifo_p->pid < lowestPid){
+            lowestPid = fifo_p->pid;
+            selectedFifo = i;
+          }
+      }
+
+      if(rr_p->policy==SCHED_RR&&rr_p->state==RUNNABLE){
+        if(selectedRR == -1 || rr_p->priority > highestPriorityRR){
+          highestPriorityRR = rr_p->priority;
+          selectedRR = (ptable.rr_pointer+i+1)%NPROC;
+        }
+      }
+    }
+
+    if(selectedFifo != -1){
+      p = &ptable.proc[selectedFifo];
+    }
+    else if(selectedRR!=-1){
+      p = &ptable.proc[selectedRR];
+      ptable.rr_pointer = selectedRR;
+    }
+    else{
+      release(&ptable.lock);
+      continue;
+
+    }
+
+      //Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       c->proc = p;
@@ -349,9 +405,31 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
-    }
+    
+    
     release(&ptable.lock);
 
+    // Loop over process table looking for process to run.
+    // acquire(&ptable.lock);
+    // for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    //   if(p->state != RUNNABLE)
+    //     continue;
+
+    //   // Switch to chosen process.  It is the process's job
+    //   // to release ptable.lock and then reacquire it
+    //   // before jumping back to us.
+    //   c->proc = p;
+    //   switchuvm(p);
+    //   p->state = RUNNING;
+
+    //   swtch(&(c->scheduler), p->context);
+    //   switchkvm();
+
+    //   // Process is done running for now.
+    //   // It should have changed its p->state before coming back.
+    //   c->proc = 0;
+    // }
+    // release(&ptable.lock);
   }
 }
 
@@ -532,3 +610,54 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+//COLES CODE
+//changes the policy and priority of a specified pid
+int setscheduler(int pid, int policy, int priority){
+
+  if((policy !=SCHED_FIFO && policy != SCHED_RR) || pid <0 || priority < 0){
+    return -1;
+  }
+  acquire(&ptable.lock);
+
+
+  for(int i = 0; i < NPROC; i++){
+
+    if(ptable.proc[i].state != UNUSED&&ptable.proc[i].state != ZOMBIE&&ptable.proc[i].state != EMBRYO && ptable.proc[i].pid==pid &&(ptable.proc[i].pid == myproc()->pid || ptable.proc[i].parent== myproc())){
+      ptable.proc[i].policy= policy;
+      ptable.proc[i].priority = priority;
+      release(&ptable.lock);
+      yield(); 
+
+      return 0;
+    }
+  }
+release(&ptable.lock);
+  return -1;
+
+}
+int clone(void *stack, int stack_size)
+{
+  return -1;
+}
+
+int waitpid(int pid)
+{
+  return -1;
+}
+
+int park(void *chan)
+{
+  return -1;
+}
+
+int setpark(void *chan)
+{
+  return -1;
+}
+
+int unpark(void *chan)
+{
+  return 0;
+}
+

@@ -120,6 +120,12 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+int             setscheduler(int pid, int policy, int priority);
+int             clone(void* stack, int stack_size);
+int             waitpid(int pid);
+int park(void *chan);
+int setpark(void *chan);
+int unpark(void *chan);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
