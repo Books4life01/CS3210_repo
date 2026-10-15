@@ -73,7 +73,7 @@ kfree(char *v)
 
 
   //ensure this physical page has no other refs to it
-  if(ref_counts[V2P(v)>>12]!=0 && --ref_counts[V2P(v)>>12]>0){
+  if((char*)V2P(v)==phys_zero_page || (ref_counts[V2P(v)>>12]!=0 && --ref_counts[V2P(v)>>12]>0)){
       if(kmem.use_lock){
         release(&ref_lock);
         release(&kmem.lock);

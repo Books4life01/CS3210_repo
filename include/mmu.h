@@ -99,7 +99,7 @@ struct segdesc {
 #define PTE_PS          0x080   // Page 
 //Custom Cole COde Copy on Write flag
 #define PTE_COW         0x200 //indicates if the page is being used in copy on write
-
+#define PTE_LA          0x400 // indicates is the page has ben lazily allocated and is pointing to the zero page
 // Address in page table or page directory entry
 #define PTE_ADDR(pte)   ((uint)(pte) & ~0xFFF)
 #define PTE_FLAGS(pte)  ((uint)(pte) &  0xFFF)

@@ -8,6 +8,7 @@
 #include "elf.h"
 #include "lab2_ag.h"
 #include "spinlock.h"
+#include <stddef.h>
 
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()
@@ -212,20 +213,32 @@ inituvm(pde_t *pgdir, char *init, uint sz)
 int
 loaduvm(pde_t *pgdir, char *addr, struct inode *ip, uint offset, uint sz)
 {
-  uint i, pa, n;
+  uint i,  n;
   pte_t *pte;
+  char* mem;
 
   if((uint) addr % PGSIZE != 0)
     panic("loaduvm: addr must be page aligned");
   for(i = 0; i < sz; i += PGSIZE){
+
+    //readi is executed in run by the system and wont trigger a page fault messing up lazy allocation
+    //thus we need to create pages for the program segment
+
+    
+
     if((pte = walkpgdir(pgdir, addr+i, 0)) == 0)
       panic("loaduvm: address should exist");
-    pa = PTE_ADDR(*pte);
+
+    if((mem = kalloc())==0)
+      return -1;
+    lab2_pgzero(mem, (uint)addr+i);
+    // pa = PTE_ADDR(*pte);
+    *pte = PTE_ADDR(V2P(mem))|PTE_P|PTE_U|PTE_W;
     if(sz - i < PGSIZE)
       n = sz - i;
     else
       n = PGSIZE;
-    if(readi(ip, P2V(pa), offset+i, n) != n)
+    if(readi(ip, mem, offset+i, n) != n)
       return -1;
   }
   return 0;
@@ -236,8 +249,8 @@ loaduvm(pde_t *pgdir, char *addr, struct inode *ip, uint offset, uint sz)
 int
 allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 {
-  char *mem;
   uint a;
+ // char* mem;
 
   if(newsz >= KERNBASE)
     return 0;
@@ -246,17 +259,26 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 
   a = PGROUNDUP(oldsz);
   for(; a < newsz; a += PGSIZE){
-    mem = kalloc();
-    if(mem == 0){
-      cprintf("allocuvm out of memory\n");
+
+
+    // mem = kalloc();
+    // if(mem == 0){
+    //   cprintf("allocuvm out of memory\n");
+    //   deallocuvm(pgdir, newsz, oldsz);
+    //   return 0;
+    // }
+    // lab2_pgzero(mem, a);
+    // if(mappages(pgdir, (char*)a, PGSIZE, V2P(mem), PTE_W|PTE_U) < 0){
+    //   cprintf("allocuvm out of memory (2)\n");
+    //   deallocuvm(pgdir, newsz, oldsz);
+    //   kfree(mem);
+    //   return 0;
+    // }
+
+    //instead of allocating a page, we change the pte_t to point to the zero page and set LA bit to 1
+    if (mappages(pgdir, (char*)a, PGSIZE, (uint)phys_zero_page, PTE_LA|PTE_U)<0){
       deallocuvm(pgdir, newsz, oldsz);
-      return 0;
-    }
-    lab2_pgzero(mem, a);
-    if(mappages(pgdir, (char*)a, PGSIZE, V2P(mem), PTE_W|PTE_U) < 0){
-      cprintf("allocuvm out of memory (2)\n");
-      deallocuvm(pgdir, newsz, oldsz);
-      kfree(mem);
+
       return 0;
     }
   }
@@ -349,7 +371,9 @@ copyuvm(pde_t *pgdir, uint sz)
     //If  the page has W=1, we set COW=1; otherwise we jsut leave as be
     //when a trap is handling a write fault, if COW is set it will set W=1 after copying, otherwise it wont because that page is read only
     //regardless we can just copy instead of allocating a new page
-    if(*pte&PTE_W||*pte&PTE_COW){
+
+    //additionaly if the page has LA=1, then we dont have to set COW, because its pointing to the shared zero page and has its one handler
+    if(!(*pte&PTE_LA)&& (*pte&PTE_W||*pte&PTE_COW)){
       //set copy on write flags for both pte's
       flags |= PTE_COW;
       *pte |= PTE_COW;
@@ -359,7 +383,7 @@ copyuvm(pde_t *pgdir, uint sz)
       invlpg((char*)i);
     }
 
-       
+     //make the new page table point to the old pages
     if(mappages(d, (void*)i, PGSIZE, pa, flags) < 0) {
       goto bad;
     }
@@ -405,6 +429,8 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
   buf = (char*)p;
   while(len > 0){
     va0 = (uint)PGROUNDDOWN(va);
+    normalize_page(pgdir, va0);
+
     pa0 = uva2ka(pgdir, (char*)va0);
     if(pa0 == 0)
       return -1;
@@ -417,6 +443,82 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
     va = va0 + PGSIZE;
   }
   return 0;
+}
+
+
+//take a page that is either lazily allocated or copy on write and allocate memory for it so it can be used normally
+void normalize_page(pde_t *pgdir, uint va){
+    
+    //Procure the page table entry
+    pte_t* pte = walkpgdir(pgdir, (char*)va, 0);
+
+    char* mem;
+
+      //if the page has a copy on write flag
+      if(*pte&PTE_COW){
+        acquire(&ref_lock);
+        
+        //if its not a shared reference page, then we can just set its write bit back
+        if(ref_counts[(PTE_ADDR(*pte)>>12)]<=1){      
+          release(&ref_lock);  
+          *pte |=PTE_W;
+          //if no additional refs clear COWs
+          *pte &=~PTE_COW;
+          invlpg((char*)va);
+          return;        
+        }
+        release(&ref_lock);
+        //otherwise we need to copy the page
+
+        //kalloc a new page
+        if ((mem = kalloc())==0){
+          return;
+        }
+        //copy the new mage into mem
+        lab2_pgcopy(mem, (char*)P2V(PTE_ADDR(*pte)), va);
+
+        //save the old physical adress so we can change its ref count
+        uint pa = PTE_ADDR(*pte);
+
+
+        acquire(&ref_lock);
+
+        //change PPN of the pte
+        *pte = PTE_ADDR(V2P(mem)) | PTE_FLAGS(*pte);
+
+
+        //decrease ref count for the old_page
+        ref_counts[(PTE_ADDR(pa)>>12)]-=1;
+        ref_counts[(PTE_ADDR(V2P(mem))>>12)]=1;//set new page ref count to 1
+        *pte |=PTE_W;
+        *pte &=~PTE_COW;
+        release(&ref_lock);
+
+        
+        invlpg((char*)va);
+        return;
+      }
+
+
+      //if the page has a lazy allocation flag
+      if(*pte&PTE_LA)
+      {
+        char* mem = kalloc();
+        if(mem==NULL){
+          return ;
+        }
+        lab2_pgzero(mem, va);
+        //replace the zero page PPn with an actually allocated and zerod page, remove the LA flag
+        *pte = PTE_ADDR(V2P(mem)) | PTE_FLAGS(*pte)|PTE_W;
+        *pte &=~PTE_LA;
+        invlpg((char*)va);
+        return;
+
+
+      }
+    
+
+
 }
 
 //PAGEBREAK!

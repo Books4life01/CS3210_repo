@@ -7,11 +7,14 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
-
+#include "lab2_ag.h"
+#include <stddef.h>
 static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
+static void create_zero_page(void);
 extern pde_t *kpgdir;
 extern char end[]; // first address after kernel loaded from ELF file
+char* phys_zero_page;
 
 // Bootstrap processor starts running C code here.
 // Allocate a real stack and switch to it, first
@@ -36,7 +39,27 @@ main(void)
   startothers();   // start other processors
   kinit2(P2V(4*1024*1024), P2V(PHYSTOP)); // must come after startothers()
   userinit();      // first user process
+  create_zero_page();
+
   mpmain();        // finish this processor's setup
+}
+
+//allocates a static page of memeory and set it to zero
+static void create_zero_page(){
+  char* mem = kalloc();
+
+  if(mem==NULL){
+    return;
+  }
+  //set the page to zero and set the ref to a large number so it never gets freed
+  
+  memset(mem, 0, PGSIZE);
+  acquire(&ref_lock);
+  ref_counts[V2P(mem)>>12]=100;
+  release(&ref_lock);
+
+//store the physical address
+  phys_zero_page=(char*)V2P(mem);
 }
 
 // Other CPUs jump here from entryother.S.

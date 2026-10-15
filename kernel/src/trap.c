@@ -76,8 +76,9 @@ trap(struct trapframe *tf)
     break;
   //START COLE CODE
   case T_PGFLT:
-    //IF we hit a page fault, if the page is present, and COW is set then its a COW fault
+  //report page fault
     lab2_report_pagefault(tf);
+
     //faulting page is put in cr2
     uint va = PGROUNDDOWN(rcr2());
     
@@ -85,64 +86,95 @@ trap(struct trapframe *tf)
 
 
     pde_t pde = pgdir[PDX(va)];
+    
+  //if the page isnt present, this is a true page fault and on xv6 we arent dealing with switching so we kill the process
     if(!(pde&PTE_P)){
       myproc()->killed=1;
       exit();
     }
+    //Manually find the pte pointer
     pte_t* pte = (pte_t*)P2V(PTE_ADDR(pde))+PTX(va);
-    
+    // cprintf("PTE Entry PTE: %x, LA: %d COW: %d\n", *pte, *pte&PTE_LA,*pte&PTE_COW);
+
     char* mem;
-    
-    if((*pte & PTE_P) && (*pte&PTE_COW) && (tf->err & 2) ){//if the page is present its a copy on write issue
-      
-      acquire(&ref_lock);
-      
-      if(ref_counts[(PTE_ADDR(*pte)>>12)]<=1){      
-        release(&ref_lock);  
+
+    //If the fault came from a write issue, its either a COW or LA issue
+
+    if(tf->err & 2){
+
+      //if its a copy on write issue
+      if(*pte&PTE_COW){
+        acquire(&ref_lock);
+        
         //if its not a shared reference page, then we can just set its write bit back
+        if(ref_counts[(PTE_ADDR(*pte)>>12)]<=1){      
+          release(&ref_lock);  
+          *pte |=PTE_W;
+          //if no additional refs clear COWs
+          *pte &=~PTE_COW;
+          invlpg((char*)va);
+          break;
+
+        }
+        release(&ref_lock);
+        //otherwise we need to copy the page
+
+        //kalloc a new page
+        if ((mem = kalloc())==0){
+          //out of memeory kill the process; xv6 does not handle swapping about memory from disk
+          myproc()->killed=1;
+          exit();
+        }
+        //copy the new mage into mem
+        lab2_pgcopy(mem, (char*)P2V(PTE_ADDR(*pte)), va);
+
+        //save the old physical adress so we can change its ref count
+        uint pa = PTE_ADDR(*pte);
+
+
+        acquire(&ref_lock);
+
+        //change PPN of the pte
+        *pte = PTE_ADDR(V2P(mem)) | PTE_FLAGS(*pte);
+
+
+        //decrease ref count for the old_page
+        ref_counts[(PTE_ADDR(pa)>>12)]-=1;
+        ref_counts[(PTE_ADDR(V2P(mem))>>12)]=1;//set new page ref count to 1
         *pte |=PTE_W;
-        //if no additional refs clear COWs
         *pte &=~PTE_COW;
+        release(&ref_lock);
+
+
+        
+        
         invlpg((char*)va);
         break;
+      }
+
+
+      //if the page fault is because of a lazy allocation
+      if(*pte&PTE_LA)
+      {
+        char* mem = kalloc();
+        if(mem==NULL){
+          //out of memeory kill the process; xv6 does not handle swapping about memory from disk
+          myproc()->killed=1;
+          exit();
+        }
+
+        lab2_pgzero(mem, va);
+        //replace the zero page PPn with an actually allocated and zerod page, remove the LA flag
+        *pte = PTE_ADDR(V2P(mem)) | PTE_FLAGS(*pte)|PTE_W;
+        *pte &=~PTE_LA;
+        invlpg((char*)va);
+
+        break;
+
 
       }
-      release(&ref_lock);
-      //otherwise we need to copy the page
-
-      //kalloc a new page
-      if ((mem = kalloc())==0){
-        //out of memeory kill the process; xv6 does not handle swapping about memory from disk
-        myproc()->killed=1;
-        exit();
-      }
-      //copy the new mage into mem
-      lab2_pgcopy(mem, (char*)P2V(PTE_ADDR(*pte)), va);
-
-      //save the old physical adress so we can change its ref count
-      uint pa = PTE_ADDR(*pte);
-
-
-      acquire(&ref_lock);
-
-      //change PPN of the pte
-      *pte = PTE_ADDR(V2P(mem)) | PTE_FLAGS(*pte);
-
-
-      //decrease ref count for the old_page
-      ref_counts[(PTE_ADDR(pa)>>12)]-=1;
-      ref_counts[(PTE_ADDR(V2P(mem))>>12)]=1;//set new page ref count to 1
-      *pte |=PTE_W;
-      *pte &=~PTE_COW;
-      release(&ref_lock);
-
-
-      
-      
-      invlpg((char*)va);
-      break;
-
-    }  
+    }
+    
     myproc()->killed=1;
     exit();
     //END COLE CODE
