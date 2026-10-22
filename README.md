@@ -10,12 +10,6 @@ discovers, initializes, and communicates with devices on a computer. One useful
 protocol is Peripheral Component Interconnect, or PCI, which we'll use to
 initialize and use a NIC: the Intel e1000.
 
-In this lab, you can earn a bonus of up to 1% towards your overall course grade.
-To qualify, you must pass Tests 1-9; failing any of Tests 1-9 yields a 0% bonus.
-If qualified, your exact bonus is calculated strictly as (autograder points
-earned / maximum possible autograder points) * 1%. Manual grading scores are
-entirely excluded from this calculation.
-
 **Important**: if you submit without completing all the parts, make sure to
 implement all syscall stubs mentioned in this lab to prevent `make failure`. We
 cannot give submissions back due to failed compilations.
