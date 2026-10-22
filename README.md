@@ -218,6 +218,10 @@ Then, in `kernel/src/trap.c`, add a switch statement entry for the NIC that call
 `e1000intr`. You may hardcode the interrupt vector once you determine it. You
 must also communicate with the LAPIC to complete the interrupt.
 
+**Edge Case**: the NIC will sometimes send one interrupt for multiple packets
+being transmitted, multiple packets being received, and/or both. Think about how
+to handle this.
+
 **Important**: make sure that your implementation is in `kernel/src/e1000.c`.
 Furthermore, upon sending and receiving data through the NIC, you must report
 the Ethernet frame sent or received to the autograder. You can achieve this by
