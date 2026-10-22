@@ -211,7 +211,8 @@ accept interrupts. Examine how other device drivers configure the I/O APIC. To
 figure out the interrupt line the NIC uses, read the `Interrupt Line` field from
 the NIC's PCI configuration register:
 [docs](https://wiki.osdev.org/PCI#Header_Type_0x0). To implement your interrupt
-handler `e1000intr`, read Sections 2.6, 3.2.7, and 3.4.3 from the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf).
+handler `e1000intr`, read Sections 2.6, 3.2.7, and 3.4.3 from the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf). **Hint**: Pay *close* attention to memory-mapped registers
+that are cleared on read.
 
 Then, in `kernel/src/trap.c`, add a switch statement entry for the NIC that calls
 `e1000intr`. You may hardcode the interrupt vector once you determine it. You
