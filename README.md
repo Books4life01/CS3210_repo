@@ -16,10 +16,10 @@ cannot give submissions back due to failed compilations.
 
 ## Resources
 In this lab, you will likely be referring to these resources:
+* The [OSDev wiki](https://wiki.osdev.org/PCI) on PCI
+* The [e1000 Manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf)
 * The xv6 manual
 * The [Intel Manual](https://d2pgu9s4sfmw1s.cloudfront.net/UAM/Prod/Done/a062E00001d9gh8QAA/ff7854ec-ee97-4f95-8879-eae3000993f3?Expires=1648211526&Key-Pair-Id=APKAJKRNIMMSNYXST6UA&Signature=Q5vLcCzTLkgRyPJNK96-1Uc1yQMN7W~PWfVvSTHWVkcioECb9ekgoUgT0nd-sosC3LwSdH75fTG9K7zd5dtDdmPEG5uma20mCHXSaEAtpXfQHMhZls1GKv7ZbSfU9OQLpvWz9hqsAjSI56mrIuJWRjuuUjKlWBHtR8f3weFJEyZRm~xGExnE-HPZCDOl9H3~zuMDZO0U4wDGLMyHUVKzevSoPduV3Z-JUCR5Yuo37KLsBUlwYcu7cIQT9xfGQH9UEoLs~948noenzb5Tz4TyM04YncLqj-WrQXQBeze46JPFZZLXRYu6IrhSvLV~7NCxhmPRF1zDKzlTSSoY30~eEw__)
-* The [e1000 Manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf)
-* The [OSDev wiki](https://wiki.osdev.org/PCI) on PCI
 
 ## Part 1: Inline x86 Assembly
 
@@ -155,9 +155,7 @@ address of the NIC:
 
 Use this option to test your implementation.
 
-## Part 4: NIC Driver & Ethernet Protocol
-
-Now that you know how to use the e1000, you'll implement a device driver for it.
+## Part 4: NIC Driver
 
 NICs serve the function of copying large amounts of data from your computer to
 the network and vice versa. Because of this, it's inefficient for a processor
@@ -177,22 +175,59 @@ transmissions are called the *receive ring*.
 
 Implement the following functions prototyped in `kernel/include/e1000.h` in
 `kernel/src/e1000.c`:
-- `e1000_init`: Initialization of the device
+- `e1000_init`: Device initialization
+- `e1000intr`: Device interrupt handler
 - `e1000_transmit`: Perform packet transmission
 - `e1000_receive`: Perform packet reception
 
 First, implement `e1000_init` (transmission initialization only) by reading
 Section 14.5 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf).
+
 Then, implement `e1000_transmit`, which should place the data in an empty buffer
 on the transmit ring and mark the buffer for transmission. You will find
-sections 3.3.1 - 3.3.3 and 3.4 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf) helpful. It should **not** overwrite any buffers in the
-transmit ring if it is full. Pay close attention to address alignment
-requirements.
+sections 3.3.1 - 3.3.3 and 3.4 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf) helpful. It should **not** overwrite any buffers in the transmit ring if it is full. Pay
+close attention to address alignment requirements.
 
-Note that `e1000_transmit` is non-blocking (it doesn't wait for the packet to
-be sent). We'll now expose a blocking version of `e1000_transmit` to userspace
-through a syscall `eth_send`. This will enable the user to send Ethernet frames
-over the network. **Implement this syscall in `kernel/src/eth.c`**.
+Next, you'll implement reception. Implement `e1000_init` (receive
+initialization) by following Section 14.4 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf). Then, implement `e1000_receive`, which should move the received data out of the
+buffer and free the buffer to be reused by the NIC. You will find sections
+3.2.2, 3.2.3, and 3.2.6 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf)
+helpful. It should **not** free any buffers in the receive ring if it is full.
+Pay close attention to address alignment requirements.
+
+`e1000_transmit` and `e1000_receive` should both block until packets are
+successfully transmitted or received respectively. To achieve this, you'll use
+`sleep` and `wakeup` semantics while adding an interrupt handler to block
+efficiently. Your code should not have lost wakeups.
+
+In lecture, you learned that there is an I/O APIC device that routes interrupts
+to specific CPU cores and their respective LAPICs. You'll notice that all device
+drivers in `xv6` program the I/O APIC to route interrupts to a specific core.
+Otherwise, no cores will receive the interrupt since I/O APIC masks all
+interrupt redirection lines at boot time.
+
+Therefore, in `e1000_init`, you'll have to configure the I/O APIC and the NIC to
+accept interrupts. Examine how other device drivers configure the I/O APIC. To
+figure out the interrupt line the NIC uses, read the `Interrupt Line` field from
+the NIC's PCI configuration register:
+[docs](https://wiki.osdev.org/PCI#Header_Type_0x0). To implement your interrupt
+handler `e1000intr`, read Sections 2.6, 3.2.7, and 3.4.3 from the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf).
+
+Then, in `kernel/src/trap.c`, add a switch statement entry for the NIC that calls
+`e1000intr`. You may hardcode the interrupt vector once you determine it. You
+must also communicate with the LAPIC to complete the interrupt.
+
+**Important**: make sure that your implementation is in `kernel/src/e1000.c`.
+Furthermore, upon sending and receiving data through the NIC, you must report
+the Ethernet frame sent or received to the autograder. You can achieve this by
+passing the frame and its size into `lab4_net_report_send` and
+`lab4_net_report_recv`. The interface is defined in
+`kernel/include/lab4_net_ag.h`.
+
+## Part 5: Ethernet Protocol
+
+We'll now export system calls to enable users to send and receive Ethernet
+frames over the network. **Implement these syscalls in `kernel/src/eth.c`**.
 ```c
 int eth_send(char *data, uint size);
 
@@ -202,6 +237,15 @@ Return Value:
 Description:
 Sends `size` bytes of `data`, encapsulated by an Ethernet frame, using the NIC.
 Blocks until the frame is sent.
+
+int eth_receive(char *data, uint size);
+
+Return Value:
+-1 on invalid args, 0 otherwise
+
+Description:
+Receives `size` bytes of data, encapsulated by an Ethernet frame, using the NIC
+into `data`. Blocks until a frame is received.
 ```
 
 Consult `kernel/include/eth.h` for the `struct ethframe` definition. The fields
@@ -220,33 +264,7 @@ As the client, we don't (yet) know the MAC address of the machine we want to
 communicate with. In such cases, setting the `dest_mac` to `0xFFFFFFFFFFFF` will
 broadcast the packet over the network.
 
-Next, you'll implement reception. Implement `e1000_init` (receive
-initialization) by following Section 14.4 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf). Then, implement `e1000_receive`, which should move
-the received data out of the buffer and free the buffer to be reused by the NIC.
-You will find sections 3.2.2, 3.2.3, and 3.2.6 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf) helpful. It should **not** free any buffers
-in the receive ring if it is full. Pay close attention to address alignment
-requirements.
-
-Analogous to `e1000_transmit`, `e1000_receive` is also non-blocking. However, we
-will expose a blocking version to userspace via the `eth_receive` syscall.
-**Implement this syscall in `kernel/src/eth.c`**.
-```c
-int eth_receive(char *data, uint size);
-
-Return Value:
--1 on invalid args, 0 otherwise
-
-Description:
-Receives `size` bytes of data, encapsulated by an Ethernet frame, using the NIC
-into `data`. Blocks until a frame is received.
-```
-
-**Important**: make sure that your implementation is in `kernel/src/e1000.c` and
-`kernel/src/eth.c`. Furthermore, upon sending and receiving data through the NIC, you must
-report the Ethernet frame sent or received to the autograder. You can achieve
-this by passing the frame and its size into `lab4_net_report_send` and
-`lab4_net_report_recv`. The interface is defined in
-`kernel/include/lab4_net_ag.h`.
+**Important**: make sure that your implementation is in `kernel/src/eth.c`.
 
 ### Testing
 
@@ -284,7 +302,7 @@ Note that you are not guaranteed to receive packets in-order. Ethernet makes no
 guarantee of providing an ordered byte-stream. That is the job of higher-level
 protocols like TCP and QUIC.
 
-## Part 5: Packet Filters
+## Part 6: Packet Filters
 
 In lecture, you learned about Extended Berkeley Packet Filters (eBPFs), which
 facilitate extensibility in operating system kernels. In this final part, you
@@ -381,7 +399,6 @@ lengths, etc.
 ## General Advice and Hints
 - Be careful with how you implement circular buffers, especially head and tail
 pointers
-- Use `sleeplocks` instead of `spinlocks` to protect I/O operations
 - Use the `volatile` C qualifier when accessing memory-mapped I/O addresses
 - Consider when to use host byte order vs. network byte order
 - Consider how memory-mapped I/O / DMA addresses must be aligned
@@ -399,9 +416,9 @@ This lab is partially autograded. The test cases are categorized as:
     * Tests 1-2
 * Part 3: MAC Address Querying
     * Tests 3-4
-* Part 4: NIC Driver & Ethernet Protocol
+* Parts 4 & 5: NIC Driver & Ethernet Protocol
     * Tests 5-9
-* Part 5: Packet Filters
+* Part 6: Packet Filters
     * Tests 10-14
 
 ### Manual Grading
