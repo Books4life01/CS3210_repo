@@ -175,30 +175,30 @@ transmissions are called the *receive ring*.
 
 Implement the following functions prototyped in `kernel/include/e1000.h` in
 `kernel/src/e1000.c`:
-- `e1000_init`: Device initialization
+- `e1000init`: Device initialization
 - `e1000intr`: Device interrupt handler
-- `e1000_transmit`: Perform packet transmission
-- `e1000_receive`: Perform packet reception
+- `e1000tx`: Perform packet transmission
+- `e1000rx`: Perform packet reception
 
-First, implement `e1000_init` (transmission initialization only) by reading
+First, implement `e1000init` (transmission initialization only) by reading
 Section 14.5 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf).
+Then, implement `e1000tx`, which should place the data in an empty buffer on the
+transmit ring and mark the buffer for transmission. You will find sections
+3.3.1 - 3.3.3 and 3.4 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf)
+helpful. It should **not** overwrite any buffers in the transmit ring if it is
+full. Pay close attention to address alignment requirements.
 
-Then, implement `e1000_transmit`, which should place the data in an empty buffer
-on the transmit ring and mark the buffer for transmission. You will find
-sections 3.3.1 - 3.3.3 and 3.4 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf) helpful. It should **not** overwrite any buffers in the transmit ring if it is full. Pay
-close attention to address alignment requirements.
-
-Next, you'll implement reception. Implement `e1000_init` (receive
-initialization) by following Section 14.4 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf). Then, implement `e1000_receive`, which should move the received data out of the
-buffer and free the buffer to be reused by the NIC. You will find sections
-3.2.2, 3.2.3, and 3.2.6 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf)
+Next, you'll implement reception. Implement `e1000init` (receive
+initialization) by following Section 14.4 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf). Then, implement `e1000rx`, which should move the received data out of the buffer
+and free the buffer to be reused by the NIC. You will find Sections 3.2.2,
+3.2.3, and 3.2.6 of the [Intel e1000 manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf)
 helpful. It should **not** free any buffers in the receive ring if it is full.
 Pay close attention to address alignment requirements.
 
-`e1000_transmit` and `e1000_receive` should both block until packets are
-successfully transmitted or received respectively. To achieve this, you'll use
-`sleep` and `wakeup` semantics while adding an interrupt handler to block
-efficiently. Your code should not have lost wakeups.
+`e1000tx` and `e1000rx` should both block until packets are successfully
+transmitted or received respectively. To achieve this, you'll use `sleep` and
+`wakeup` semantics while adding an interrupt handler to block efficiently. Your
+code should not have lost wakeups.
 
 In lecture, you learned that there is an I/O APIC device that routes interrupts
 to specific CPU cores and their respective LAPICs. You'll notice that all device
@@ -206,7 +206,7 @@ drivers in `xv6` program the I/O APIC to route interrupts to a specific core.
 Otherwise, no cores will receive the interrupt since I/O APIC masks all
 interrupt redirection lines at boot time.
 
-Therefore, in `e1000_init`, you'll have to configure the I/O APIC and the NIC to
+Therefore, in `e1000init`, you'll have to configure the I/O APIC and the NIC to
 accept interrupts. Examine how other device drivers configure the I/O APIC. To
 figure out the interrupt line the NIC uses, read the `Interrupt Line` field from
 the NIC's PCI configuration register:
