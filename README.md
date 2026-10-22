@@ -352,6 +352,14 @@ jge <reg0>, <reg1>, <offset>
 Pseudocode:
 if (reg0 >= reg1) ip += offset;
 
+add <reg0>, <dst_reg>
+Pseudocode:
+dst_reg = dst_reg + reg0;
+
+sub <reg0>, <dst_reg>
+Pseudocode:
+dst_reg = dst_reg - reg0;
+
 ret_pass
 Pass the packet, exits the filter program.
 
@@ -367,7 +375,7 @@ void bpf_init(void);
 Description:
 Initializes the BPF VM.
 
-int bpf_load(struct bpf_insn *program, uint num_insns);
+int bpf_load(const union bpf_attr *attr);
 Description:
 Loads a BPF program into the VM.
 
@@ -385,9 +393,11 @@ Return Value:
 Place these functions appropriately in the kernel. Then, implement the following
 system call:
 ```c
-int bpf_load(struct bpf_insn *program, uint num_insns);
+int bpf(int cmd, union bpf_attr *attr, uint size);
 Description:
-Loads a xv6 BPF program into the kernel.
+Multiplexed BPF syscall. cmd selects the operation:
+  BPF_PROG_LOAD (0): loads attr->prog.insns (attr->prog.insn_cnt
+    instructions) as the program.
 
 Return Value:
 -1 on invalid args, 0 otherwise

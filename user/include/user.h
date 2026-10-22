@@ -9,6 +9,17 @@ struct rtcdate;
 #define JGE_OPCODE      0x4
 #define RET_PASS_OPCODE 0x5
 #define RET_DROP_OPCODE 0x6
+#define ADD_OPCODE      0x7
+#define SUB_OPCODE      0x8
+
+#define BPF_PROG_LOAD   0
+
+union bpf_attr {
+    struct {
+        struct bpf_insn *insns;
+        uint32_t insn_cnt;
+    } prog;
+};
 
 struct bpf_insn {
     uint8_t opcode;

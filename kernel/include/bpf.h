@@ -15,6 +15,10 @@
 #define JGE_OPCODE      0x4
 #define RET_PASS_OPCODE 0x5
 #define RET_DROP_OPCODE 0x6
+#define ADD_OPCODE      0x7
+#define SUB_OPCODE      0x8
+
+#define BPF_PROG_LOAD   0
 
 struct bpf_insn {
     uint8_t opcode;
@@ -29,6 +33,13 @@ struct bpf_insn {
     uint8_t dst_reg;
 };
 
+union bpf_attr {
+    struct {
+        struct bpf_insn *insns;
+        uint32_t insn_cnt;
+    } prog;
+};
+
 struct bpf_vm {
     int loaded;
     uint8_t ip;
@@ -41,7 +52,7 @@ extern struct bpf_vm vm;
 extern struct spinlock vm_lock;
 
 void bpf_init(void);
-int bpf_load(struct bpf_insn *program, uint num_insns);
+int bpf_load(const union bpf_attr *attr);
 int bpf_run(char *pkt, uint pktsize);
 
 #endif // _BPF_H
