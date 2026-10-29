@@ -19,7 +19,6 @@ In this lab, you will likely be referring to these resources:
 * The [OSDev wiki](https://wiki.osdev.org/PCI) on PCI
 * The [e1000 Manual](https://pdos.csail.mit.edu/6.828/2018/readings/hardware/8254x_GBe_SDM.pdf)
 * The xv6 manual
-* The [Intel Manual](https://d2pgu9s4sfmw1s.cloudfront.net/UAM/Prod/Done/a062E00001d9gh8QAA/ff7854ec-ee97-4f95-8879-eae3000993f3?Expires=1648211526&Key-Pair-Id=APKAJKRNIMMSNYXST6UA&Signature=Q5vLcCzTLkgRyPJNK96-1Uc1yQMN7W~PWfVvSTHWVkcioECb9ekgoUgT0nd-sosC3LwSdH75fTG9K7zd5dtDdmPEG5uma20mCHXSaEAtpXfQHMhZls1GKv7ZbSfU9OQLpvWz9hqsAjSI56mrIuJWRjuuUjKlWBHtR8f3weFJEyZRm~xGExnE-HPZCDOl9H3~zuMDZO0U4wDGLMyHUVKzevSoPduV3Z-JUCR5Yuo37KLsBUlwYcu7cIQT9xfGQH9UEoLs~948noenzb5Tz4TyM04YncLqj-WrQXQBeze46JPFZZLXRYu6IrhSvLV~7NCxhmPRF1zDKzlTSSoY30~eEw__)
 
 ## Part 1: Inline x86 Assembly
 
