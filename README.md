@@ -236,7 +236,7 @@ frames over the network. **Implement these syscalls in `kernel/src/eth.c`**.
 int eth_send(char *data, uint size);
 
 Return Value:
--1 on invalid args, 0 otherwise
+-1 on invalid args or transmit ring full, 0 otherwise
 
 Description:
 Given `size` bytes of `data`, construct an Ethernet frame and send the frame
