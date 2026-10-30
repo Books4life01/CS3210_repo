@@ -239,8 +239,8 @@ Return Value:
 -1 on invalid args, 0 otherwise
 
 Description:
-Sends `size` bytes of `data`, encapsulated by an Ethernet frame, using the NIC.
-Blocks until the frame is sent.
+Given `size` bytes of `data`, construct an Ethernet frame and send the frame
+using the NIC. Blocks until the frame is sent.
 
 int eth_receive(char *data, uint size);
 
@@ -248,8 +248,9 @@ Return Value:
 -1 on invalid args, 0 otherwise
 
 Description:
-Receives `size` bytes of data, encapsulated by an Ethernet frame, using the NIC
-into `data`. Blocks until a frame is received.
+Receives an Ethernet frame (already constructed) over the network containing
+`size` bytes of data using the NIC. Copies the Ethernet frame payload into
+`data`. Blocks until a frame is received.
 ```
 
 Consult `kernel/include/eth.h` for the `struct ethframe` definition. The fields
