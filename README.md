@@ -324,7 +324,10 @@ packet reception, not transmission.
 xv6 BPF VM Description:
 - Harvard architecture
 - 8 byte-width registers
-- 512 bytes of memory
+- 512 bytes of scratch memory, reset on every packet; packet bytes start at
+address 0
+- A separate 16-byte map with byte-valued entries at indices 0–15. Map contents
+  persist across VM runs and program loads, and are reset when xv6 boots.
 - Packets are loaded into memory address 0x0
 - Instruction store capacity of 128 instructions
 - One BPF program loaded at a time
@@ -363,12 +366,22 @@ sub <reg0>, <dst_reg>
 Pseudocode:
 dst_reg = dst_reg - reg0;
 
+call <imm>
+Pseudocode:
+BPF_FUNC_map_lookup_elem (1): r0 = map[r0];
+BPF_FUNC_map_update_elem (2): map[r0] = r1;
+
 ret_pass
 Pass the packet, exits the filter program.
 
 ret_drop
 Drop the packet, exits the filter program.
 ```
+
+For the `call` instruction, `r0` and `r1` refer to the 0th and 1st indices in
+the VM's register file (0-indexed). The rest of the instructions that refer to
+`reg0` and `reg1` refer to the registers indicated in the instruction operands,
+not the 0th and 1st indices necessarily. 
 
 ### Requirements
 
@@ -396,19 +409,25 @@ Return Value:
 Place these functions appropriately in the kernel. Then, implement the following
 system call:
 ```c
-int bpf(int cmd, union bpf_attr *attr, uint size);
+int bpf(int cmd, union bpf_attr *attr);
 Description:
 Multiplexed BPF syscall. cmd selects the operation:
-  BPF_PROG_LOAD (0): loads attr->prog.insns (attr->prog.insn_cnt
-    instructions) as the program.
+  BPF_PROG_LOAD (0): loads attr->prog.insns, containing attr->prog.insn_cnt
+    instructions, as the packet filter.
+  BPF_MAP_LOOKUP_ELEM (1): reads map[attr->map.index] into attr->map.value.
+  BPF_MAP_UPDATE_ELEM (2): writes attr->map.value into map[attr->map.index].
 
 Return Value:
--1 on invalid args, 0 otherwise
+-1 on invalid arguments, 0 otherwise.
 ```
+
+The map is shared between userspace map syscalls and the running BPF program.
+Map lookup and update must access the same entries that the VM helpers use.
+Register values and scratch memory reset for each packet; map values do not.
 
 ### Testing
 - Try to write some simple packet filters, like filtering by address, payload 
-lengths, etc.
+lengths, rate limiter, etc.
 
 ## General Advice and Hints
 - Be careful with how you implement circular buffers, especially head and tail

@@ -7,6 +7,7 @@
 #define NUMREGS         8
 #define MEMSIZE         512
 #define NUMINSNS        128
+#define MAPSIZE         16
 
 #define LD_OPCODE       0x0
 #define LDI_OPCODE      0x1
@@ -17,8 +18,14 @@
 #define RET_DROP_OPCODE 0x6
 #define ADD_OPCODE      0x7
 #define SUB_OPCODE      0x8
+#define CALL_OPCODE     0x9
 
-#define BPF_PROG_LOAD   0
+#define BPF_PROG_LOAD        0
+#define BPF_MAP_LOOKUP_ELEM  1
+#define BPF_MAP_UPDATE_ELEM  2
+
+#define BPF_FUNC_map_lookup_elem 1
+#define BPF_FUNC_map_update_elem 2
 
 struct bpf_insn {
     uint8_t opcode;
@@ -38,6 +45,10 @@ union bpf_attr {
         struct bpf_insn *insns;
         uint32_t insn_cnt;
     } prog;
+    struct {
+        uint32_t index;
+        uint8_t value;
+    } map;
 };
 
 struct bpf_vm {
@@ -45,6 +56,7 @@ struct bpf_vm {
     uint8_t ip;
     uint8_t reg[NUMREGS];
     uint8_t mem[MEMSIZE];
+    uint8_t map[MAPSIZE]; 
     struct bpf_insn insns[NUMINSNS];
 };
 

@@ -11,14 +11,24 @@ struct rtcdate;
 #define RET_DROP_OPCODE 0x6
 #define ADD_OPCODE      0x7
 #define SUB_OPCODE      0x8
+#define CALL_OPCODE     0x9
 
-#define BPF_PROG_LOAD   0
+#define BPF_PROG_LOAD        0
+#define BPF_MAP_LOOKUP_ELEM  1
+#define BPF_MAP_UPDATE_ELEM  2
+
+#define BPF_FUNC_map_lookup_elem 1
+#define BPF_FUNC_map_update_elem 2
 
 union bpf_attr {
     struct {
         struct bpf_insn *insns;
         uint32_t insn_cnt;
     } prog;
+    struct {
+        uint32_t index;
+        uint8_t value;
+    } map;
 };
 
 struct bpf_insn {
@@ -56,6 +66,9 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int bpf(int cmd, union bpf_attr *attr);
+int eth_send(char *, uint);
+int eth_receive(char *, uint);
 
 // ulib.c
 int stat(const char*, struct stat*);
