@@ -451,7 +451,7 @@ This lab is partially autograded. The test cases are categorized as:
 * Parts 4 & 5: NIC Driver & Ethernet Protocol
     * Tests 5-9
 * Part 6: Packet Filters
-    * Tests 10-14
+    * Tests 10-19
 
 ### Manual Grading
 
