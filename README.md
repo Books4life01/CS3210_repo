@@ -265,9 +265,11 @@ specifier
 actually 1512 bytes. To avoid colliding with other `ethr_type` values we
 restrict the size of the payload to 256 bytes
 
-As the client, we don't (yet) know the MAC address of the machine we want to
-communicate with. In such cases, setting the `dest_mac` to `0xFFFFFFFFFFFF` will
-broadcast the packet over the network.
+Since the Ethernet protocol you'll be implementing is simple and the IP/ARP
+protocols are out of this lab's scope, as the client, we don't know the MAC
+address of the machine we want to communicate with. Therefore, you'll just be 
+setting `dest_mac` to `0xFFFFFFFFFFFF`, which will broadcast the packet over
+the network.
 
 **Important**: make sure that your implementation is in `kernel/src/eth.c`.
 
@@ -327,8 +329,8 @@ xv6 BPF VM Description:
 - 8 byte-width registers
 - 512 bytes of scratch memory, reset on every packet; packet bytes start at
 address 0
-- A separate 16-byte map with byte-valued entries at indices 0–15. Map contents
-  persist across VM runs and program loads, and are reset when xv6 boots.
+- A map supporting 16 keys, each storing 1 byte. Map contents persist across VM
+runs and program loads, and are reset when xv6 boots.
 - Packets are loaded into memory address 0x0
 - Instruction store capacity of 128 instructions
 - One BPF program loaded at a time
@@ -421,10 +423,6 @@ Multiplexed BPF syscall. cmd selects the operation:
 Return Value:
 -1 on invalid arguments, 0 otherwise.
 ```
-
-The map is shared between userspace map syscalls and the running BPF program.
-Map lookup and update must access the same entries that the VM helpers use.
-Register values and scratch memory reset for each packet; map values do not.
 
 ### Testing
 - Try to write some simple packet filters, like filtering by address, payload 
