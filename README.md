@@ -63,7 +63,7 @@ Vendor <vendor_id2> Device <device_id2>
 **For grading purposes,** the output of the devices must be ordered by bus
 number, then by device number, then by function number -- all of which are in
 ascending order. Do **not** include the `0x` prefix before any hexadecimal
-numbers.
+numbers. Do **not** include angled brackets in your output.
 
 For this part, you will determine the device and vendor ID for each valid
 device attached. Read the [OSDev wiki on PCI](https://wiki.osdev.org/PCI) up to 
