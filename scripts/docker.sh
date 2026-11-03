@@ -50,5 +50,5 @@ else
       --rm -it \
       --name="xv6" \
       --privileged --cap-add NET_ADMIN \
-      -v ${ROOT_DIR}/:/xv6 -w="/xv6" cs3210/xv6-net:latest
+      -v "${ROOT_DIR}/":/xv6 -w="/xv6" cs3210/xv6-net:latest
 fi
