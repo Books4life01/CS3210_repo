@@ -32,6 +32,7 @@ set(kernel_SOURCES
 	src/syscall.c
 	src/sysfile.c
 	src/sysproc.c
+	src/syspci.c
 	src/trap.c
 	src/uart.c
 	src/vm.c

@@ -69,6 +69,7 @@ int uptime(void);
 int bpf(int cmd, union bpf_attr *attr);
 int eth_send(char *, uint);
 int eth_receive(char *, uint);
+int lspci(void);
 
 // ulib.c
 int stat(const char*, struct stat*);
