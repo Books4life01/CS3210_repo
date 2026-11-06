@@ -34,6 +34,21 @@ outw(ushort port, ushort data)
   __asm__ volatile("out %0,%1" : : "a" (data), "d" (port));
 }
 
+
+
+static inline void
+outl(ushort port, uint data){
+  __asm__ volatile("out %0,%1" : : "a" (data), "d" (port));
+
+}
+
+static inline uint
+inl(ushort port){
+  uint data;
+  __asm__ volatile("in %1,%0" : "=a" (data) : "d" (port));
+  return data;
+}
+
 static inline void
 outsl(int port, const void *addr, int cnt)
 {
