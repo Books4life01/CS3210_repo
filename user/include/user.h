@@ -70,6 +70,7 @@ int bpf(int cmd, union bpf_attr *attr);
 int eth_send(char *, uint);
 int eth_receive(char *, uint);
 int lspci(void);
+int whatsmymac(unsigned char *);
 
 // ulib.c
 int stat(const char*, struct stat*);
