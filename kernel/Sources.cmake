@@ -33,6 +33,9 @@ set(kernel_SOURCES
 	src/sysfile.c
 	src/sysproc.c
 	src/syspci.c
+	src/eth.c
+	src/bpf.c
+	src/e100.c
 	src/trap.c
 	src/uart.c
 	src/vm.c

@@ -18,7 +18,7 @@ int sys_whatsmymac(void){
     ushort deviceID;
     ushort vendorID; 
     uint32_t address;
-    uint bar;
+    uint bar=0;
     char* mac;
 
     if(argptr(0, &mac, 6) < 0){
@@ -27,6 +27,7 @@ int sys_whatsmymac(void){
    
 
     for(int b = 0; b < NUMBUSES; b++){
+
         for(int d = 0; d < NUMDEVICES; d++){
              address = (uint32_t)((b << 16) | (d << 11) |(0 << 8) | (0 & 0xFC) | (1U<<31));
             
@@ -54,7 +55,10 @@ int sys_whatsmymac(void){
             outl(CONFIGDATA, command_reg);//write the data
         }
     }
-    uint* base = (uint*)bar;
+    if(bar==0){
+        return -1;
+    }
+    volatile uint* base = (uint*)bar;
     //RAL holds lower 32 bits
     //RAH holds upper 16 bits
 

@@ -105,6 +105,10 @@ extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_lspci(void);
 extern int sys_whatsmymac(void);
+extern int sys_eth_send(void);
+extern int sys_eth_receive(void);
+extern int sys_bpf(void);
+
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -130,6 +134,9 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 [SYS_lspci] sys_lspci,
 [SYS_whatsmymac] sys_whatsmymac,
+[SYS_eth_send] sys_eth_send, 
+[SYS_eth_receive] sys_eth_receive,
+[SYS_bpf] sys_bpf,
 };
 
 void
